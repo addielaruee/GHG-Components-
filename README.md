@@ -1,6 +1,6 @@
 # GHG Components
 
-React components for **P24 — Online Platform to Manage and Monitor GHG Systems**, the SOFT3888
+React components for **P24: Online Platform to Manage and Monitor GHG Systems**, the SOFT3888
 capstone project for USYD SOLES.
 
 These are built and reviewed **in isolation** here, then copied across to the group repository.
@@ -14,7 +14,7 @@ These are built and reviewed **in isolation** here, then copied across to the gr
 | Styling | Tailwind CSS 4 |
 | Lint | oxlint |
 
-Tailwind 4 is configured **in CSS**, not a JS config file — design tokens live in the `@theme` block
+Tailwind 4 is configured **in CSS**, not a JS config file. Design tokens live in the `@theme` block
 in `src/index.css`. There is no `tailwind.config.js`.
 
 ## Getting started
@@ -25,6 +25,7 @@ npm run dev        # component gallery at http://localhost:5173
 npm run build      # typecheck + production build
 npm run lint       # oxlint
 npm run typecheck  # types only
+npm run check:size # 300-line limit on components (also runs in CI)
 ```
 
 ## Layout
@@ -38,7 +39,7 @@ src/
 │   ├── charts/       TimeSeriesChart and its wrappers
 │   └── overlays/     Modal, Popover, ColourPicker, LineStylePicker
 ├── types/            Domain types. Array and standalone chambers are a
-│                     discriminated union — they report different fields.
+│                     discriminated union, since they report different fields.
 ├── lib/              Shared helpers
 ├── mocks/            Sample data, including deliberately malformed records
 └── App.tsx           The component gallery
@@ -53,25 +54,27 @@ decorative.
 Five rules produce most of that difference:
 
 1. **A fine vertical gradient on filled surfaces.** Never a flat fill. Light at the top, base colour
-   at the foot — it reads as a lit surface rather than a printed rectangle.
+   at the foot, so it reads as a lit surface rather than a printed rectangle.
 2. **An inset hairline along the top edge.** `inset 0 1px 0 rgb(255 255 255 / …)`. This is the single
    highest-value detail and the one most often skipped.
 3. **Soft, short-range elevation.** A 1–2px shadow at 5–20% opacity. Never a large blurry drop.
-4. **Spring on press.** `active:scale-[0.97]`, gradient flattened, shadow removed — the control moves
+4. **Spring on press.** `active:scale-[0.97]`, gradient flattened, shadow removed, so the control moves
    under the finger. Keep the press transition faster than the hover one.
 5. **Tight typography.** `tracking-[-0.006em]` at body sizes, medium weight, and font smoothing on.
 
 Radii live at 8px (`rounded-control`) for controls and 12px for panels. Both are rounder than the
 wireframe's 6px, which is most of what separates "considered" from "default".
 
-Everything above is already expressed as tokens in `src/index.css` — use `shadow-control`,
+Everything above is already expressed as tokens in `src/index.css`, so use `shadow-control`,
 `shadow-control-solid`, `rounded-control` and the colour tokens rather than re-deriving values.
 
 ## House rules
 
 - **300 lines maximum per component.** Split rather than exceed it. This keeps files easy to review
-  and to regenerate with AI.
-- **Import with the `@` alias** — `import { Button } from '@/components/primitives/Button'`.
+  and to regenerate with AI. **Enforced in CI**: the `Component size` workflow fails any push where
+  a file under `src/components/` goes over. Check before pushing with `npm run check:size`, or try a
+  different limit with `COMPONENT_LINE_LIMIT=200 npm run check:size`.
+- **Import with the `@` alias**: `import { Button } from '@/components/primitives/Button'`.
 - **A missing reading renders as an em-dash, never `0`.** The client's data has permanently empty
   sensor columns and devices that drop offline; showing zero would be a scientific error.
 - **Array and standalone chambers report different fields.** Keep them as separate types rather than
@@ -84,7 +87,7 @@ Everything above is already expressed as tokens in `src/index.css` — use `shad
 The wireframe, the component list and the client's own requirements live in the project folder one
 level up:
 
-- `COMPONENT_INVENTORY.md` — every component, what it does, which screen it appears on
-- `FRONTEND_PLAN.md` — screen-by-screen analysis and build order
-- `context/wireframe/` — wireframe screenshots
-- `context/DASHBOARD_DATA_SPEC.md` — the client's data spec and flux method
+- `COMPONENT_INVENTORY.md`: every component, what it does, which screen it appears on
+- `FRONTEND_PLAN.md`: screen-by-screen analysis and build order
+- `context/wireframe/`: wireframe screenshots
+- `context/DASHBOARD_DATA_SPEC.md`: the client's data spec and flux method

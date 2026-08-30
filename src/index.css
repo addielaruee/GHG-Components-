@@ -110,6 +110,14 @@
      this can appear on twenty rows at once. */
   --animate-status-pulse: status-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
+  /* Control heights. Every interactive control — Button, IconButton,
+     SegmentedControl, TextInput, Select — is sized from these rather than from
+     its own padding arithmetic. Padding maths drifts: four of them had ended up
+     at 32, 34 and 36px, which is invisible in isolation and obvious the moment
+     two sit in the same row. */
+  --spacing-control-sm: 1.75rem; /* 28px */
+  --spacing-control-md: 2.125rem; /* 34px */
+
   /* Radii. Controls sit at 8px — rounder than the wireframe's 6px, which is
      what reads as "considered" rather than "default". */
   --radius-control: 8px;

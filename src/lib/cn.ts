@@ -3,7 +3,7 @@
  *
  *   cn('px-2', isActive && 'bg-ink', className)
  *
- * Deliberately tiny. It does NOT resolve conflicting Tailwind classes — if a
+ * Deliberately tiny. It does NOT resolve conflicting Tailwind classes. If a
  * caller passes `px-8` it lands alongside our `px-3.5` and the later one in the
  * stylesheet wins, not the later one in the string. That has been fine so far
  * because our components put `className` last and callers override rarely. If

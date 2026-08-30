@@ -26,7 +26,7 @@ import { cn } from '@/lib/cn'
 
 export interface SegmentedOption<T extends string> {
   value: T
-  /** Usually text, but any node — the line-style control renders rules. */
+  /** Usually text, but any node. The line-style control renders rules. */
   label: React.ReactNode
   /** Required when `label` is not readable text, e.g. a rendered line. */
   ariaLabel?: string
@@ -46,17 +46,19 @@ export interface SegmentedControlProps<T extends string> {
   className?: string
 }
 
+// The track takes the shared control height and the segments fill it, so a
+// toggle is exactly as tall as the Button beside it.
 const sizes = {
   sm: {
-    pad: 'p-[2px]',
+    track: 'h-control-sm p-[2px]',
     pill: 'top-[2px] bottom-[2px]',
-    seg: 'px-2.5 py-[3px] text-[13px]/[18px]',
+    seg: 'h-full px-2.5 text-[13px]',
     radius: 'rounded-[6px]',
   },
   md: {
-    pad: 'p-[3px]',
+    track: 'h-control-md p-[3px]',
     pill: 'top-[3px] bottom-[3px]',
-    seg: 'px-3.5 py-1 text-sm/5',
+    seg: 'h-full px-3.5 text-sm',
     radius: 'rounded-[6px]',
   },
 }
@@ -102,7 +104,7 @@ export function SegmentedControl<T extends string>({
         'relative isolate inline-flex rounded-control border border-line-strong',
         'bg-surface-lo shadow-track',
         fullWidth && 'flex w-full',
-        sizes[size].pad,
+        sizes[size].track,
         className,
       )}
     >

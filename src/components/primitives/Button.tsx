@@ -9,9 +9,9 @@ import { cn } from '@/lib/cn'
  * The wireframe uses exactly two treatments, so this component offers exactly
  * two and no more:
  *
- *   primary   — solid dark. The single most important action on a screen.
+ *   primary:   solid dark. The single most important action on a screen.
  *               "Export raw data", "+ Add chamber", "Save layout", "Apply".
- *   secondary — white with a hairline border. Everything else.
+ *   secondary: white with a hairline border. Everything else.
  *               "Rename", "Edit device", "Discard", "Cancel", "Test connection".
  *
  * Structure and colour follow the wireframe. The finish does not: a fine
@@ -24,7 +24,7 @@ type Variant = 'primary' | 'secondary'
 type Size = 'sm' | 'md'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Visual weight. Defaults to `secondary` — see the note below. */
+  /** Visual weight. Defaults to `secondary`. See the note below. */
   variant?: Variant
   /** `md` for page and dialog actions, `sm` for dense rows like the bulk-action bar. */
   size?: Size
@@ -68,9 +68,11 @@ const variants: Record<Variant, string> = {
   ].join(' '),
 }
 
+// Height comes from the shared control tokens, not from padding, so every
+// control in a row lines up exactly.
 const sizes: Record<Size, string> = {
-  sm: 'px-3 py-1 text-[13px]/[18px]',
-  md: 'px-3.5 py-1.5 text-sm/5',
+  sm: 'h-control-sm px-3 text-[13px]',
+  md: 'h-control-md px-3.5 text-sm',
 }
 
 /**

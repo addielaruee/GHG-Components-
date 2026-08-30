@@ -1,0 +1,124 @@
+/**
+ * Icons
+ *
+ * Hand-drawn rather than pulled from a library. The whole dashboard needs about
+ * a dozen glyphs, and it deploys to a Raspberry Pi where every kilobyte of
+ * bundle is real. An icon package would be more weight and less control than
+ * this.
+ *
+ * All of them are 16x16, stroked with `currentColor`, so they inherit the
+ * colour and size of whatever they sit in. The 1.75 stroke is chosen to sit
+ * alongside medium-weight text. A lighter stroke looks weak next to it, which
+ * is the usual reason hand-rolled icon sets look amateur. Switch to `lucide-react` if the set
+ * ever grows past roughly fifteen.
+ */
+
+type IconProps = { className?: string }
+
+const base = {
+  viewBox: '0 0 16 16',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.75,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  'aria-hidden': true,
+}
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="7.2" cy="7.2" r="4.2" />
+      <path d="M10.4 10.4 13.5 13.5" />
+    </svg>
+  )
+}
+
+export function ChevronDownIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="m4 6.2 4 4 4-4" />
+    </svg>
+  )
+}
+
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="m6.2 4 4 4-4 4" />
+    </svg>
+  )
+}
+
+export function ChevronLeftIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="m9.8 4-4 4 4 4" />
+    </svg>
+  )
+}
+
+export function CloseIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="m4 4 8 8M12 4l-8 8" />
+    </svg>
+  )
+}
+
+export function PlusIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M8 3.5v9M3.5 8h9" />
+    </svg>
+  )
+}
+
+export function MinusIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M3.5 8h9" />
+    </svg>
+  )
+}
+
+/** Thicker than the rest, because it renders inside a 16px checkbox. */
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg {...base} strokeWidth={2.2} className={className}>
+      <path d="m3.5 8.4 3 3 6-6.8" />
+    </svg>
+  )
+}
+
+export function DashIcon({ className }: IconProps) {
+  return (
+    <svg {...base} strokeWidth={2.2} className={className}>
+      <path d="M4 8h8" />
+    </svg>
+  )
+}
+
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M8 12.5v-9M4.5 7 8 3.5 11.5 7" />
+    </svg>
+  )
+}
+
+export function ArrowDownIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M8 3.5v9M4.5 9 8 12.5 11.5 9" />
+    </svg>
+  )
+}
+
+export function ArrowRightIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" />
+    </svg>
+  )
+}

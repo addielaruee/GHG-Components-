@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn'
  * Badge
  *
  * A small static label stating a fact about the thing beside it. Not
- * clickable — if it does something, it is a Button.
+ * clickable. If it does something, it is a Button.
  *
  * In the wireframe:
  *   soft     Standalone chamber · Array chamber · Array mode · 8 chambers
@@ -14,8 +14,8 @@ import { cn } from '@/lib/cn'
  * Both are 18px pills at the default size, taken from the wireframe.
  *
  * The wireframe renders every badge in grey, including "No response". Tones
- * are offered anyway because the data has real fault states — the analyser's
- * ALARM_STATUS among them — and the alternative is the team reaching for
+ * are offered anyway because the data has real fault states, the analyser's
+ * ALARM_STATUS among them, and the alternative is the team reaching for
  * className overrides the first time a screen needs a red one.
  */
 
@@ -40,7 +40,7 @@ export interface BadgeProps {
 /**
  * Each tone carries its own border colour rather than overriding a shared one.
  * Two border-color utilities in a single class list are resolved by Tailwind's
- * ordering, not by the order cn() joins them — so the base sets width only.
+ * ordering, not by the order cn() joins them, so the base sets width only.
  *
  * The soft fills are a fine vertical gradient with a border a step deeper in
  * the same tone, rather than a flat wash on a transparent edge. At 18px neither
@@ -91,7 +91,7 @@ export function Badge({
     <span
       className={cn(
         // Every variant carries a border width so soft and outline badges sit
-        // at the same height side by side — which they do on the array-chamber
+        // at the same height side by side, which they do on the array-chamber
         // header.
         'inline-flex shrink-0 items-center rounded-full border',
         'font-medium tracking-[-0.005em] whitespace-nowrap',

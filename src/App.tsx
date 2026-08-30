@@ -1,6 +1,23 @@
 import { useState } from 'react'
 import { Badge } from '@/components/primitives/Badge'
 import { Button } from '@/components/primitives/Button'
+import { Checkbox } from '@/components/primitives/Checkbox'
+import { Chip } from '@/components/primitives/Chip'
+import { EmptyValue } from '@/components/primitives/EmptyValue'
+import { IconButton } from '@/components/primitives/IconButton'
+import { SearchInput } from '@/components/primitives/SearchInput'
+import { Select } from '@/components/primitives/Select'
+import { TextInput } from '@/components/primitives/TextInput'
+import { TextLink } from '@/components/primitives/TextLink'
+import { TrendArrow } from '@/components/primitives/TrendArrow'
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  MinusIcon,
+  PlusIcon,
+} from '@/components/primitives/icons'
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
 
@@ -21,13 +38,22 @@ export default function App() {
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
   const [lineStyle, setLineStyle] = useState('solid')
+  const [rows, setRows] = useState({ a: true, b: false, c: false })
+  const [channels, setChannels] = useState<Record<string, boolean>>({
+    Chamber_Temp_C: true,
+    'Chamber_RH_%': true,
+    Chamber_Pressure_Pa: true,
+    SoilM_Raw: false,
+    avSD: false,
+  })
+  const selectedCount = Object.values(rows).filter(Boolean).length
 
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface/80 px-8 py-5 backdrop-blur-xl">
         <h1 className="text-[15px] font-semibold tracking-[-0.01em]">GHG Components</h1>
         <p className="mt-0.5 text-[13px] text-gray-500">
-          P24 — GHG chamber monitoring dashboard. Component gallery.
+          P24: GHG chamber monitoring dashboard. Component gallery.
         </p>
       </header>
 
@@ -149,7 +175,7 @@ export default function App() {
               ]}
             />
             <p className="basis-full text-xs text-gray-400">
-              History is disabled, so it cannot be selected — this is the per-option state, not a
+              History is disabled, so it cannot be selected. This is the per-option state, not a
               disabled control.
             </p>
           </Row>
@@ -157,7 +183,7 @@ export default function App() {
 
         <Section
           title="StatusDot"
-          note="Four states, three sizes. Pulse is opt-in — never in a list."
+          note="Four states, three sizes. Pulse is opt-in, never in a list."
         >
           <Row label="states">
             <Legend status="ok" text="Reporting" />
@@ -256,6 +282,165 @@ export default function App() {
             </span>
           </Row>
         </Section>
+
+        <Section title="Checkbox" note="Chart legends, row selection, and a select-all header that needs the indeterminate state.">
+          <Row label="states">
+            <Checkbox label="Unchecked" />
+            <Checkbox label="Checked" defaultChecked />
+            <Checkbox label="Indeterminate" indeterminate />
+            <Checkbox label="Disabled" disabled />
+          </Row>
+          <Row label="select all">
+            <div className="flex flex-col gap-2">
+              <Checkbox
+                label={`Select all (${selectedCount} of 3)`}
+                checked={selectedCount === 3}
+                indeterminate={selectedCount > 0 && selectedCount < 3}
+                onChange={(e) =>
+                  setRows({ a: e.target.checked, b: e.target.checked, c: e.target.checked })
+                }
+              />
+              <div className="ml-5 flex flex-col gap-1.5">
+                {(['a', 'b', 'c'] as const).map((k, i) => (
+                  <Checkbox
+                    key={k}
+                    size="sm"
+                    label={`CH-0${i + 1}`}
+                    checked={rows[k]}
+                    onChange={(e) => setRows((r) => ({ ...r, [k]: e.target.checked }))}
+                  />
+                ))}
+              </div>
+            </div>
+          </Row>
+        </Section>
+
+        <Section title="TextInput · SearchInput · Select" note="One shared field surface, so a stacked form never drifts.">
+          <Row label="text">
+            <div className="w-56">
+              <TextInput label="ChamberID" defaultValue="CH-S29" />
+            </div>
+            <div className="w-56">
+              <TextInput label="IP address" placeholder="192.168.1.___" hint="On the office tailnet." />
+            </div>
+          </Row>
+          <Row label="error">
+            <div className="w-56">
+              <TextInput label="Latitude" defaultValue="not-a-number" error="Must be a decimal degree." />
+            </div>
+          </Row>
+          <Row label="trailing">
+            <div className="w-72">
+              <TextInput
+                label="IP address"
+                placeholder="192.168.1.___"
+                trailing={<Button size="sm">Test connection</Button>}
+              />
+            </div>
+          </Row>
+          <Row label="search">
+            <div className="w-64">
+              <SearchInput />
+            </div>
+          </Row>
+          <Row label="select">
+            <div className="w-56">
+              <Select
+                label="Variable"
+                defaultValue="CO2_ppm"
+                options={[
+                  { value: 'CO2_ppm', label: 'CO2_ppm (ppm)' },
+                  { value: 'UsedSD', label: 'UsedSD (GB)' },
+                  { value: 'Chamber_Temp_C', label: 'Chamber_Temp_C (°C)' },
+                ]}
+              />
+            </div>
+            <div className="w-56">
+              <Select
+                label="Chamber"
+                hint="MPVPosition, the client's own request."
+                defaultValue="1"
+                options={[1, 2, 3, 4, 6, 7, 8].map((n) => ({
+                  value: String(n),
+                  label: `CH-0${n}`,
+                }))}
+              />
+            </div>
+          </Row>
+        </Section>
+
+        <Section title="IconButton · TextLink · TrendArrow · EmptyValue" note="The small pieces that fill tables and card footers.">
+          <Row label="icon · ghost">
+            <IconButton label="Collapse card">
+              <ChevronDownIcon />
+            </IconButton>
+            <IconButton label="Close">
+              <CloseIcon />
+            </IconButton>
+            <IconButton label="Collapse card" size="sm">
+              <ChevronDownIcon />
+            </IconButton>
+          </Row>
+          <Row label="icon · outline">
+            <IconButton label="Zoom in" variant="outline">
+              <PlusIcon />
+            </IconButton>
+            <IconButton label="Zoom out" variant="outline">
+              <MinusIcon />
+            </IconButton>
+            <IconButton label="Previous page" variant="outline" size="sm">
+              <ChevronLeftIcon />
+            </IconButton>
+            <IconButton label="Next page" variant="outline" size="sm">
+              <ChevronRightIcon />
+            </IconButton>
+          </Row>
+          <Row label="links">
+            <TextLink>Show 4 more array chambers</TextLink>
+            <TextLink>Select all 8</TextLink>
+            <TextLink size="sm">12 more</TextLink>
+            <TextLink href="#top">Open CH-01 chamber page →</TextLink>
+          </Row>
+          <Row label="trend">
+            <span className="flex items-center gap-1 text-sm font-medium">
+              3.41 <TrendArrow direction="up" />
+            </span>
+            <span className="flex items-center gap-1 text-sm font-medium">
+              2.87 <TrendArrow direction="down" />
+            </span>
+            <span className="flex items-center gap-1 text-sm font-medium">
+              4.62 <TrendArrow direction="flat" />
+            </span>
+            <span className="text-xs text-gray-400">
+              Uncoloured on purpose: a rising flux is not good or bad news.
+            </span>
+          </Row>
+          <Row label="empty">
+            <span className="text-sm">
+              CH-04 · <EmptyValue reason="Chamber unreachable since 09:14" /> ppm
+            </span>
+            <span className="text-xs text-gray-400">Never a zero.</span>
+          </Row>
+        </Section>
+
+        <Section title="Chip" note="Channel toggles. The third state means the sensor was never fitted.">
+          <Row label="channels">
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(channels).map(([name, on]) => (
+                <Chip
+                  key={name}
+                  active={on}
+                  onClick={() => setChannels((c) => ({ ...c, [name]: !c[name] }))}
+                >
+                  {name}
+                </Chip>
+              ))}
+              <Chip disabled>SoilT_C · not fitted</Chip>
+              <Chip disabled>Soil_EC · not fitted</Chip>
+              <Chip disabled>Light_Down · not fitted</Chip>
+            </div>
+          </Row>
+        </Section>
       </main>
     </div>
   )
@@ -299,7 +484,8 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-line bg-surface shadow-panel">
+    // No overflow-hidden: it would clip an open Select menu.
+    <section className="rounded-xl border border-line bg-surface shadow-panel">
       <div className="border-b border-line px-5 py-3.5">
         <h2 className="text-[13px] font-semibold tracking-[-0.006em]">{title}</h2>
         {note && <p className="mt-0.5 text-xs text-gray-500">{note}</p>}

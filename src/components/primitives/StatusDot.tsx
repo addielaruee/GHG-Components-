@@ -31,7 +31,7 @@ export interface StatusDotProps {
   pulse?: boolean
   /**
    * Accessible name. Defaults to a sensible phrase per status. Pass `null`
-   * when adjacent text already says it — "unreachable since 09:14" beside a
+   * when adjacent text already says it: "unreachable since 09:14" beside a
    * dot labelled "Not responding" is noise in a screen reader.
    */
   label?: string | null
@@ -62,9 +62,9 @@ const styles: Record<Status, { fill: string; pulse: string; label: string }> = {
 }
 
 const sizes = {
-  sm: 'size-1.5', // 6px — dense table rows
-  md: 'size-2', //   8px — the wireframe's size, the default everywhere
-  lg: 'size-2.5', // 10px — detail page headers
+  sm: 'size-1.5', // 6px, dense table rows
+  md: 'size-2', //   8px, the wireframe's size and the default everywhere
+  lg: 'size-2.5', // 10px, detail page headers
 }
 
 export function StatusDot({
