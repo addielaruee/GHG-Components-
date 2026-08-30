@@ -31,7 +31,16 @@
   --color-line: #e3e3e6; /* hairline borders and dividers            */
   --color-line-strong: #d6d6da; /* borders that need to read crisply */
 
-  --color-accent: #2a78d6; /* selected segment, links, focus ring     */
+  /* Accent — selected segment, links, focus ring. `-hi` is the gradient top.
+     A deep royal blue rather than a bright azure. Bright mid-blues are the
+     default everything reaches for, which is why they read as generic; going
+     darker and more saturated gives the selected state weight and lets white
+     text sit on it comfortably. The gradient range stays narrow — a wide
+     light-to-dark spread reads as plastic. */
+  --color-accent: #0d47a1;
+  --color-accent-hi: #17539c;
+  --color-accent-hover: #10529b;
+  --color-accent-hover-hi: #1b5fb0;
 
   /* Status. Used by StatusDot and the map pins. */
   --color-status-ok: #22c55e; /* green  — reporting normally          */
@@ -58,6 +67,14 @@
   --shadow-control-solid: 0 1px 2px rgb(0 0 0 / 0.2),
     0 2px 6px -2px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.13);
   --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -4px rgb(0 0 0 / 0.06);
+  /* A recessed well — used by the segmented control's track so the selected
+     pill reads as sitting on top of it rather than punched into it. */
+  --shadow-track: inset 0 1px 2px rgb(0 0 0 / 0.045);
+  /* Elevation for an accent-filled surface. The shadow carries the hue rather
+     than being neutral grey — a grey shadow under a coloured control is one of
+     the clearest tells of unconsidered UI. */
+  --shadow-control-accent: 0 1px 2px rgb(6 32 80 / 0.35),
+    0 2px 5px -2px rgb(6 32 80 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.18);
 
   /* Radii. Controls sit at 8px — rounder than the wireframe's 6px, which is
      what reads as "considered" rather than "default". */

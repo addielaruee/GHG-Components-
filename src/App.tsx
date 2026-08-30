@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Button } from '@/components/primitives/Button'
+import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 
 /**
  * Component gallery.
@@ -10,6 +12,14 @@ import { Button } from '@/components/primitives/Button'
  * Add a <Section> per component as it lands.
  */
 export default function App() {
+  const [averaging, setAveraging] = useState('30m')
+  const [averagingSmall, setAveragingSmall] = useState('30m')
+  const [view, setView] = useState('cards')
+  const [feed, setFeed] = useState('live')
+  const [feedPartial, setFeedPartial] = useState('live')
+  const [deviceType, setDeviceType] = useState('array')
+  const [lineStyle, setLineStyle] = useState('solid')
+
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface/80 px-8 py-5 backdrop-blur-xl">
@@ -47,8 +57,121 @@ export default function App() {
             <Button variant="primary">Export raw data</Button>
           </Row>
         </Section>
+
+        <Section
+          title="SegmentedControl"
+          note="Every instance found in the wireframe. The pill slides; arrow keys work."
+        >
+          <Row label="averaging">
+            <SegmentedControl
+              ariaLabel="Averaging interval"
+              value={averaging}
+              onChange={setAveraging}
+              options={[
+                { value: '1m', label: '1 min' },
+                { value: '5m', label: '5 min' },
+                { value: '30m', label: '30 min' },
+              ]}
+            />
+          </Row>
+          <Row label="view">
+            <SegmentedControl
+              ariaLabel="Device view"
+              value={view}
+              onChange={setView}
+              options={[
+                { value: 'cards', label: 'Cards' },
+                { value: 'table', label: 'Table' },
+                { value: 'map', label: 'Map' },
+              ]}
+            />
+          </Row>
+          <Row label="feed">
+            <SegmentedControl
+              ariaLabel="Feed mode"
+              value={feed}
+              onChange={setFeed}
+              options={[
+                { value: 'live', label: 'Live' },
+                { value: 'history', label: 'History' },
+              ]}
+            />
+          </Row>
+          <Row label="small">
+            <SegmentedControl
+              size="sm"
+              ariaLabel="Averaging interval"
+              value={averagingSmall}
+              onChange={setAveragingSmall}
+              options={[
+                { value: '1m', label: '1 min' },
+                { value: '5m', label: '5 min' },
+                { value: '30m', label: '30 min' },
+              ]}
+            />
+          </Row>
+          <Row label="full width">
+            <div className="w-96">
+              <SegmentedControl
+                fullWidth
+                ariaLabel="Device type"
+                value={deviceType}
+                onChange={setDeviceType}
+                options={[
+                  { value: 'array', label: 'Analyser array' },
+                  { value: 'standalone', label: 'Standalone chamber' },
+                ]}
+              />
+            </div>
+          </Row>
+          <Row label="line style">
+            <SegmentedControl
+              ariaLabel="Line style"
+              value={lineStyle}
+              onChange={setLineStyle}
+              options={[
+                { value: 'solid', label: <Rule dash="none" />, ariaLabel: 'Solid' },
+                { value: 'dashed', label: <Rule dash="6 4" />, ariaLabel: 'Dashed' },
+                { value: 'dotted', label: <Rule dash="1.5 3" />, ariaLabel: 'Dotted' },
+              ]}
+            />
+          </Row>
+          <Row label="one option off">
+            <SegmentedControl
+              ariaLabel="Feed mode"
+              value={feedPartial}
+              onChange={setFeedPartial}
+              options={[
+                { value: 'live', label: 'Live' },
+                { value: 'history', label: 'History', disabled: true },
+              ]}
+            />
+            <p className="basis-full text-xs text-gray-400">
+              History is disabled, so it cannot be selected — this is the per-option state, not a
+              disabled control.
+            </p>
+          </Row>
+        </Section>
       </main>
     </div>
+  )
+}
+
+/** A short rule, used to preview a chart line style inside a segment. */
+function Rule({ dash }: { dash: string }) {
+  return (
+    <svg width="40" height="10" viewBox="0 0 40 10" aria-hidden>
+      <line
+        x1="0"
+        y1="5"
+        x2="40"
+        y2="5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeDasharray={dash === 'none' ? undefined : dash}
+      />
+    </svg>
   )
 }
 
@@ -74,11 +197,11 @@ function Section({
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-6 px-5 py-4">
-      <span className="w-24 shrink-0 text-[11px] tracking-wide text-gray-400 uppercase">
+    <div className="flex items-start gap-6 px-5 py-4">
+      <span className="w-32 shrink-0 pt-1.5 text-[11px] tracking-wide text-gray-400 uppercase">
         {label}
       </span>
-      <div className="flex flex-wrap items-center gap-2">{children}</div>
+      <div className="flex min-w-0 flex-wrap items-center gap-3">{children}</div>
     </div>
   )
 }
