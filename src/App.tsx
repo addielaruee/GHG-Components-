@@ -350,9 +350,12 @@ export default function App() {
                 label={`Select all (${selectedCount} of 3)`}
                 checked={selectedCount === 3}
                 indeterminate={selectedCount > 0 && selectedCount < 3}
-                onChange={(e) =>
-                  setRows({ a: e.target.checked, b: e.target.checked, c: e.target.checked })
-                }
+                // Same rule as DataTable's header: an indeterminate box reports
+                // checked === false, so decide from the selection, not the event.
+                onChange={() => {
+                  const clear = selectedCount > 0
+                  setRows({ a: !clear, b: !clear, c: !clear })
+                }}
               />
               <div className="ml-5 flex flex-col gap-1.5">
                 {(['a', 'b', 'c'] as const).map((k, i) => (
@@ -534,10 +537,13 @@ export default function App() {
             />
             <div className="flex flex-col gap-3">
               <DeviceCard device={standaloneChambers[0]} stats={cardStats(standaloneChambers[0])} />
-              {/* Unreachable: no reading at all, so it cannot open. */}
+              {/* Unreachable: no reading at all, so it cannot open. The wording
+                  comes from the caller, because only the caller knows a gap is a
+                  fault rather than the client's six-hourly forwarding. */}
               <DeviceCard
                 device={standaloneChambers[2]}
                 stats={[]}
+                meta={[standaloneChambers[2].ipAddress, 'unreachable since 09:14']}
                 aside={
                   <Badge tone="warn" variant="outline" size="sm">
                     No response

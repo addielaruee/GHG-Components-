@@ -20,6 +20,12 @@ export interface CheckboxProps
    * The "some but not all" state, for a select-all header. Visual only: the
    * underlying input stays unchecked, which is what the HTML spec says an
    * indeterminate box is.
+   *
+   * ⚠️ Because of that, a select-all handler must **not** read
+   * `event.target.checked`. An indeterminate box reports `false`, so clicking it
+   * flips to `true` and selects everything, when what a user expects from a
+   * half-ticked box is that it clears. Decide from your own selection state:
+   * anything selected clears, nothing selected selects all.
    */
   indeterminate?: boolean
   /** Text beside the box. Omit for a bare box in a table cell. */

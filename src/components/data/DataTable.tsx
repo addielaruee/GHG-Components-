@@ -99,8 +99,13 @@ export function DataTable<T>({
                   aria-label="Select all rows"
                   checked={selectedCount > 0 && selectedCount === allKeys.length}
                   indeterminate={selectedCount > 0 && selectedCount < allKeys.length}
-                  onChange={(e) =>
-                    selection.onChange(new Set(e.target.checked ? allKeys : []))
+                  // Do not read e.target.checked here. A native checkbox in the
+                  // indeterminate state still reports checked === false, so a
+                  // click on it flips to true and selects everything, forcing a
+                  // second click to clear. Decide from the selection instead:
+                  // anything selected clears, nothing selected selects all.
+                  onChange={() =>
+                    selection.onChange(new Set(selectedCount > 0 ? [] : allKeys))
                   }
                 />
               </th>
