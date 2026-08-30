@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { SidebarNav } from '@/components/layout/SidebarNav'
 import { Badge } from '@/components/primitives/Badge'
@@ -42,6 +43,7 @@ export default function App() {
   const [shellView, setShellView] = useState('cards')
   const [shellSection, setShellSection] = useState('devices')
   const [navDemo, setNavDemo] = useState('devices')
+  const [crumb, setCrumb] = useState<string | null>(null)
   const [feed, setFeed] = useState('live')
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
@@ -462,6 +464,53 @@ export default function App() {
             <span className="text-xs text-gray-400">
               Selected: <span className="font-medium text-ink">{navDemo}</span>
             </span>
+          </Row>
+        </Section>
+
+        <Section
+          title="Breadcrumb"
+          note="All three detail-page trails. The three-step one is where an array chamber's dependence on the analyser shows."
+        >
+          <Row label="standalone">
+            <Breadcrumb
+              onNavigate={setCrumb}
+              items={[
+                { id: 'devices', label: 'Devices' },
+                { id: 'ch-s21', label: 'CH-S21' },
+              ]}
+            />
+          </Row>
+          <Row label="analyser">
+            <Breadcrumb
+              onNavigate={setCrumb}
+              items={[
+                { id: 'devices', label: 'Devices' },
+                { id: 'analyser', label: 'Analyser' },
+              ]}
+            />
+          </Row>
+          <Row label="array chamber">
+            <Breadcrumb
+              onNavigate={setCrumb}
+              items={[
+                { id: 'devices', label: 'Devices' },
+                { id: 'analyser', label: 'Analyser' },
+                { id: 'ch-01', label: 'CH-01' },
+              ]}
+            />
+            <span className="text-xs text-gray-400">
+              Last clicked: <span className="font-medium text-ink">{crumb ?? 'nothing yet'}</span>
+            </span>
+          </Row>
+          <Row label="not clickable">
+            {/* Without onNavigate it renders as plain text. */}
+            <Breadcrumb
+              items={[
+                { id: 'devices', label: 'Devices' },
+                { id: 'analyser', label: 'Analyser' },
+                { id: 'ch-01', label: 'CH-01' },
+              ]}
+            />
           </Row>
         </Section>
 
