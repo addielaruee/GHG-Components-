@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { DeviceCardHeader } from '@/components/data/DeviceCardHeader'
 import { StatStrip, type Stat } from '@/components/data/StatStrip'
-import { TrendArrow } from '@/components/primitives/TrendArrow'
 import { EmptyValue } from '@/components/primitives/EmptyValue'
-import { StatusDot } from '@/components/primitives/StatusDot'
+import { TrendArrow } from '@/components/primitives/TrendArrow'
 import { cn } from '@/lib/cn'
+import { clockTime, formatLastRow } from '@/lib/time'
 import type { StandaloneChamber } from '@/types/device'
 
 /**
@@ -37,6 +37,13 @@ export interface DeviceCardProps {
   defaultCollapsed?: boolean
   /** Sits left of the chevron, for a "No response" badge. */
   aside?: React.ReactNode
+  /**
+   * Override the line under the name. The card states elapsed time and no more,
+   * because whether a gap is a fault depends on the agreed forwarding cadence,
+   * which is still open with the client. A caller that knows a device has
+   * failed can say so here: `['192.168.1.53', 'unreachable since 09:14']`.
+   */
+  meta?: React.ReactNode[]
   className?: string
 }
 
@@ -45,6 +52,7 @@ export function DeviceCard({
   stats,
   defaultCollapsed,
   aside,
+  meta,
   className,
 }: DeviceCardProps) {
   const hasReading = device.latest !== null
@@ -65,11 +73,7 @@ export function DeviceCard({
           status={device.status}
           name={device.name}
           kind="standalone"
-          meta={
-            device.ipAddress
-              ? [device.ipAddress, describeLastRow(device.lastRowAt)]
-              : [describeLastRow(device.lastRowAt)]
-          }
+          meta={meta ?? [device.ipAddress, formatLastRow(device.lastRowAt)].filter(Boolean)}
           aside={aside}
           expanded={expanded}
           // A card with nothing to show has nothing to open.
@@ -94,7 +98,8 @@ export function DeviceCard({
 
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-2.5">
             <span className="text-[13px] text-ink/55">
-              Latest CO₂ flux{device.latestFlux ? ` · cycle ${clock(device.latestFlux.closedAt)}` : ''}
+              Latest CO₂ flux
+              {device.latestFlux ? ` · cycle ${clockTime(device.latestFlux.closedAt)}` : ''}
             </span>
             {device.latestFlux?.value == null ? (
               <span className="text-[13px]">
@@ -112,19 +117,3 @@ export function DeviceCard({
     </div>
   )
 }
-
-/** "last row 2 min ago", or the plainer truth when it has been a while. */
-function describeLastRow(iso: string | null) {
-  if (!iso) return 'never reported'
-  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000)
-  if (minutes < 1) return 'last row just now'
-  if (minutes < 60) return `last row ${minutes} min ago`
-  return `unreachable since ${clock(iso)}`
-}
-
-function clock(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
-/** Re-exported so a caller can build the header without importing two files. */
-export { DeviceCardHeader, StatusDot }

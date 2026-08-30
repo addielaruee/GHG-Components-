@@ -4,6 +4,7 @@ import { DeviceCardHeader } from '@/components/data/DeviceCardHeader'
 import { ShowMoreRow } from '@/components/data/ShowMoreRow'
 import { StatStrip, type Stat } from '@/components/data/StatStrip'
 import { cn } from '@/lib/cn'
+import { formatLastRow } from '@/lib/time'
 import type { Analyser, ArrayChamber } from '@/types/device'
 
 /**
@@ -68,7 +69,10 @@ export function AnalyserCard({
           status={analyser.status}
           name={analyser.name}
           kind="array mode"
-          meta={['last row 12 s ago', `${chambers.length} chambers in array`]}
+          meta={[
+            formatLastRow(analyser.lastRowAt),
+            `${chambers.length} chambers in array`,
+          ]}
           expanded={expanded}
           onToggle={() => setExpanded((e) => !e)}
         />
