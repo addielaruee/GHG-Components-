@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Badge } from '@/components/primitives/Badge'
 import { Button } from '@/components/primitives/Button'
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
@@ -190,6 +191,69 @@ export default function App() {
                 <span className="text-gray-500">· unreachable since 09:14</span>
               </span>
             </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="Badge"
+          note="A static label, never clickable. Grey is the wireframe's only tone; the rest are for fault states."
+        >
+          <Row label="from wireframe">
+            <Badge>Standalone chamber</Badge>
+            <Badge>Array chamber</Badge>
+            <Badge>Array mode · 8 chambers</Badge>
+            <Badge variant="outline">read-only</Badge>
+            <Badge variant="outline">No response</Badge>
+          </Row>
+          <Row label="tones · soft">
+            <Badge tone="ok">Reporting</Badge>
+            <Badge tone="warn">Not responding</Badge>
+            <Badge tone="error">Alarm 4</Badge>
+            <Badge>Neutral</Badge>
+          </Row>
+          <Row label="with dot">
+            <Badge tone="ok" dot>
+              Reporting
+            </Badge>
+            <Badge tone="warn" dot>
+              Not responding
+            </Badge>
+            <Badge tone="error" dot>
+              Alarm 4
+            </Badge>
+            <Badge tone="error" variant="outline" dot>
+              Alarm 4
+            </Badge>
+          </Row>
+          <Row label="tones · outline">
+            <Badge tone="ok" variant="outline">
+              Reporting
+            </Badge>
+            <Badge tone="warn" variant="outline">
+              Not responding
+            </Badge>
+            <Badge tone="error" variant="outline">
+              Alarm 4
+            </Badge>
+            <Badge variant="outline">Neutral</Badge>
+          </Row>
+          <Row label="small">
+            <Badge size="sm">Standalone chamber</Badge>
+            <Badge size="sm" variant="outline">
+              read-only
+            </Badge>
+            <Badge size="sm" tone="warn">
+              no flux yet
+            </Badge>
+          </Row>
+          <Row label="in context">
+            {/* The array-chamber detail header, where soft and outline sit together. */}
+            <span className="flex items-center gap-2">
+              <StatusDot status="ok" label={null} size="lg" />
+              <span className="text-lg font-semibold tracking-[-0.01em]">CH-01</span>
+              <Badge>Array chamber</Badge>
+              <Badge variant="outline">read-only</Badge>
+            </span>
           </Row>
         </Section>
       </main>

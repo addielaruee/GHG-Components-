@@ -65,6 +65,13 @@
   --color-status-unknown: #a1a8b1; /* slate  — never seen             */
   --color-status-unknown-hi: #afb5bd;
 
+  /* Darkened for text. The dot colours are tuned to read as a filled bead
+     against white; used as type on a pale tint of themselves they fall short
+     of 4.5:1, so badges and inline labels take these instead. */
+  --color-status-ok-deep: #2e5744;
+  --color-status-warn-deep: #74581f;
+  --color-status-error-deep: #77392c;
+
   /* Chart series palette. Order matters: chambers take colours from this
      list in sequence, and the choice is remembered per device. */
   --color-series-1: #2563eb;
