@@ -1,3 +1,4 @@
+import { MetaList } from '@/components/primitives/MetaList'
 import { StatusDot, type Status } from '@/components/primitives/StatusDot'
 import { cn } from '@/lib/cn'
 
@@ -11,10 +12,11 @@ import { cn } from '@/lib/cn'
  *   ● CH-01  [Array chamber] [read-only]      Rename  Open analyser  Export
  *   Reported by Analyser · array position 1 of 8 · Location: inherits analyser
  *
- * `meta` takes an array rather than a string, and this component joins it with
- * the middot. Every one of those lines is a list of unrelated facts, and having
+ * `meta` takes an array rather than a string, and MetaList joins it with the
+ * middot. Every one of those lines is a list of unrelated facts, and having
  * callers hand-write the separator is how three pages end up with three
- * spacings around it.
+ * spacings around it. TableSectionHeader needs the same thing, which is why the
+ * joining lives in its own component rather than here.
  *
  * The status dot here keeps its accessible label, unlike in the card and table
  * views. There the surrounding text already says "unreachable since 09:14", so
@@ -60,13 +62,8 @@ export function DetailHeader({
           </div>
 
           {meta && meta.length > 0 && (
-            <p className="mt-1.5 text-[13px] text-ink/55">
-              {meta.map((item, index) => (
-                <span key={index}>
-                  {index > 0 && <span aria-hidden> · </span>}
-                  {item}
-                </span>
-              ))}
+            <p className="mt-1.5">
+              <MetaList items={meta} className="text-[13px]" />
             </p>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { DataTable, type Column } from '@/components/data/DataTable'
 import { StatStrip } from '@/components/data/StatStrip'
+import { TableSectionHeader } from '@/components/data/TableSectionHeader'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
 import { Card } from '@/components/layout/Card'
 import { DetailHeader } from '@/components/layout/DetailHeader'
@@ -485,18 +486,55 @@ export default function App() {
         </Section>
 
         <Section
+          title="TableSectionHeader"
+          note="Introduces each table on the Table view. Also used in the DataTable section below, in place."
+        >
+          <div className="divide-y divide-line">
+            <TableSectionHeader
+              title="Analyser array · ARR-1"
+              meta={[
+                `${arrayChambers.length} chambers`,
+                'gas is measured by the analyser, not the chamber',
+                <>CO₂ {analyser.latest?.co2} ppm</>,
+              ]}
+            />
+            <TableSectionHeader
+              title="Standalone chambers"
+              meta={[
+                `${standaloneChambers.length} devices`,
+                'own analyser and soil probe',
+                `${standaloneChambers.length} shown`,
+              ]}
+            />
+            <TableSectionHeader title="Title only" />
+          </div>
+          <Row label="why it matters">
+            <p className="max-w-2xl text-xs text-gray-400">
+              The Table view shows two tables and without labels the split looks arbitrary. It is
+              not: the two device kinds report different columns and cannot share one table.
+              &ldquo;Gas is measured by the analyser, not the chamber&rdquo; is the sentence doing
+              the most work on that screen, because it explains why the array table has no CO₂
+              column.
+            </p>
+          </Row>
+        </Section>
+
+        <Section
           title="DataTable"
           note="Column-driven, because it appears five times with different columns. Numbers right-align; nulls sort last."
         >
           <div className="space-y-5 px-5 py-4">
             <div>
-              <p className="mb-2 text-[13px]">
-                <span className="font-semibold">Analyser array · ARR-1</span>{' '}
-                <span className="text-ink/55">
-                  7 chambers · gas is measured by the analyser, not the chamber
-                </span>
-              </p>
-              <div className="rounded-panel border border-line">
+              <TableSectionHeader
+                className="px-0"
+                title="Analyser array · ARR-1"
+                meta={[
+                  `${arrayChambers.length} chambers`,
+                  'gas is measured by the analyser, not the chamber',
+                  <>CO₂ {analyser.latest?.co2} ppm</>,
+                ]}
+              />
+              <div className="mt-1 rounded-panel border border-line">
                 <DataTable
                   rows={arrayChambers}
                   rowKey={(c) => c.id}
@@ -514,13 +552,16 @@ export default function App() {
             </div>
 
             <div>
-              <p className="mb-2 text-[13px]">
-                <span className="font-semibold">Standalone chambers</span>{' '}
-                <span className="text-ink/55">
-                  {standaloneChambers.length} devices · own sensor and soil probe
-                </span>
-              </p>
-              <div className="rounded-panel border border-line">
+              <TableSectionHeader
+                className="px-0"
+                title="Standalone chambers"
+                meta={[
+                  `${standaloneChambers.length} devices`,
+                  'own analyser and soil probe',
+                  `${standaloneChambers.length} shown`,
+                ]}
+              />
+              <div className="mt-1 rounded-panel border border-line">
                 <DataTable
                   rows={standaloneChambers}
                   rowKey={(c) => c.id}
