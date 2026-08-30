@@ -99,6 +99,27 @@ export function DashIcon({ className }: IconProps) {
   )
 }
 
+/** Sidebar: Dashboards. A panel split into one tall tile and two stacked ones. */
+export function DashboardIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="2.5" y="2.5" width="4.5" height="11" rx="1.2" />
+      <rect x="9" y="2.5" width="4.5" height="4.5" rx="1.2" />
+      <rect x="9" y="9" width="4.5" height="4.5" rx="1.2" />
+    </svg>
+  )
+}
+
+/** Sidebar: Devices. A hub with leads running off it, which is what a chamber is. */
+export function DeviceIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="8" cy="8" r="2.6" />
+      <path d="M8 2v2.6M8 11.4V14M2 8h2.6M11.4 8H14" />
+    </svg>
+  )
+}
+
 export function ArrowUpIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className}>

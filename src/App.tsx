@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
+import { SidebarNav } from '@/components/layout/SidebarNav'
 import { Badge } from '@/components/primitives/Badge'
 import { Button } from '@/components/primitives/Button'
 import { Checkbox } from '@/components/primitives/Checkbox'
@@ -14,6 +14,8 @@ import { TextLink } from '@/components/primitives/TextLink'
 import { TrendArrow } from '@/components/primitives/TrendArrow'
 import {
   ChevronDownIcon,
+  DashboardIcon,
+  DeviceIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CloseIcon,
@@ -38,6 +40,7 @@ export default function App() {
   const [view, setView] = useState('cards')
   const [shellView, setShellView] = useState('cards')
   const [shellSection, setShellSection] = useState('devices')
+  const [navDemo, setNavDemo] = useState('devices')
   const [feed, setFeed] = useState('live')
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
@@ -447,6 +450,21 @@ export default function App() {
         </Section>
 
         <Section
+          title="SidebarNav"
+          note="Two items, and it should stay that way. Selected row gets an accent rail, taken from the wireframe."
+        >
+          <Row label="on the tint">
+            {/* Shown on the canvas tint, because that is the only place it appears. */}
+            <div className="w-sidebar overflow-hidden rounded-lg border border-line bg-canvas">
+              <SidebarNav value={navDemo} onChange={setNavDemo} items={SECTIONS} />
+            </div>
+            <span className="text-xs text-gray-400">
+              Selected: <span className="font-medium text-ink">{navDemo}</span>
+            </span>
+          </Row>
+        </Section>
+
+        <Section
           title="AppShell"
           note="The frame all ten screens sit in. Only the content column scrolls; the sidebar and header stay put."
         >
@@ -456,7 +474,13 @@ export default function App() {
             <div className="h-96 overflow-hidden rounded-lg border border-line">
               <AppShell
                 bounded
-                sidebar={<DemoSidebar value={shellSection} onChange={setShellSection} />}
+                sidebar={
+                  <SidebarNav
+                    value={shellSection}
+                    onChange={setShellSection}
+                    items={SECTIONS}
+                  />
+                }
                 header={
                   <div className="flex items-center justify-between px-5 py-2.5">
                     <h3 className="text-base font-semibold tracking-[-0.01em]">
@@ -510,41 +534,11 @@ export default function App() {
   )
 }
 
-/**
- * Stand-in for SidebarNav, which is the next component in the inventory. Kept
- * here rather than in the library so it does not become a second source of
- * truth for the real navigation.
- */
-function DemoSidebar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const items = [
-    { id: 'dashboards', label: 'Dashboards' },
-    { id: 'devices', label: 'Devices' },
-  ]
-  return (
-    <>
-      <div className="px-4 py-3.5 text-[13px] font-semibold tracking-[-0.01em]">GHG Monitor</div>
-      <nav aria-label="Sections" className="px-2">
-        {items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            aria-current={value === item.id ? 'page' : undefined}
-            onClick={() => onChange(item.id)}
-            className={cn(
-              'mb-0.5 block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-[13px]',
-              'outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30',
-              value === item.id
-                ? 'bg-ink/10 font-medium text-ink'
-                : 'text-ink/65 hover:bg-ink/[0.05] hover:text-ink',
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
-    </>
-  )
-}
+/** The app's two sections. Exactly two, and it should stay that way. */
+const SECTIONS = [
+  { id: 'dashboards', label: 'Dashboards', icon: <DashboardIcon /> },
+  { id: 'devices', label: 'Devices', icon: <DeviceIcon /> },
+]
 
 /** A dot with its meaning spelled out, for the gallery. */
 function Legend({ status, text }: { status: 'ok' | 'warn' | 'error' | 'unknown'; text: string }) {
