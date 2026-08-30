@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/primitives/Button'
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
+import { StatusDot } from '@/components/primitives/StatusDot'
 
 /**
  * Component gallery.
@@ -152,8 +153,57 @@ export default function App() {
             </p>
           </Row>
         </Section>
+
+        <Section
+          title="StatusDot"
+          note="Four states, three sizes. Pulse is opt-in — never in a list."
+        >
+          <Row label="states">
+            <Legend status="ok" text="Reporting" />
+            <Legend status="warn" text="Not responding" />
+            <Legend status="error" text="Fault" />
+            <Legend status="unknown" text="No data yet" />
+          </Row>
+          <Row label="sizes">
+            <StatusDot status="ok" size="sm" />
+            <StatusDot status="ok" size="md" />
+            <StatusDot status="ok" size="lg" />
+            <span className="text-xs text-gray-400">6 / 8 / 10 px</span>
+          </Row>
+          <Row label="pulse">
+            <StatusDot status="ok" size="lg" pulse />
+            <span className="text-xs text-gray-400">
+              A device actively reporting. Suppressed under reduced-motion.
+            </span>
+          </Row>
+          <Row label="in context">
+            {/* How it reads in the card view and the detail header. */}
+            <div className="flex flex-col gap-2">
+              <span className="flex items-center gap-2 text-sm">
+                <StatusDot status="ok" label={null} />
+                <span className="font-semibold">CH-S21</span>
+                <span className="text-gray-500">· standalone · last row 2 min ago</span>
+              </span>
+              <span className="flex items-center gap-2 text-sm">
+                <StatusDot status="warn" label={null} />
+                <span className="font-semibold">CH-S23</span>
+                <span className="text-gray-500">· unreachable since 09:14</span>
+              </span>
+            </div>
+          </Row>
+        </Section>
       </main>
     </div>
+  )
+}
+
+/** A dot with its meaning spelled out, for the gallery. */
+function Legend({ status, text }: { status: 'ok' | 'warn' | 'error' | 'unknown'; text: string }) {
+  return (
+    <span className="flex items-center gap-2 text-[13px] text-gray-600">
+      <StatusDot status={status} label={null} />
+      {text}
+    </span>
   )
 }
 

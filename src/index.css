@@ -42,11 +42,28 @@
   --color-accent-hover: #10529b;
   --color-accent-hover-hi: #1b5fb0;
 
-  /* Status. Used by StatusDot and the map pins. */
-  --color-status-ok: #22c55e; /* green  — reporting normally          */
-  --color-status-warn: #f59e0b; /* amber  — quiet or unreachable      */
-  --color-status-error: #ef4444; /* red    — faulted                  */
-  --color-status-unknown: #9ca3af; /* grey   — never seen             */
+  /* Status. Used by StatusDot and the map pins.
+     A muted, matte family — forest, gold, brick, slate. Saturation stays low so
+     they read as considered rather than as signal lights, but lightness sits
+     mid-range: an earlier pass went too dark and the four collapsed into
+     near-black at 8px.
+
+     They are spread on BOTH hue and lightness, because matching them to one
+     tone looks tidy in a swatch row and becomes indistinguishable at the size
+     the dot is actually used. Gold is pushed yellower and brick redder so the
+     two warm states separate; measured luminance runs brick 0.19, forest 0.23,
+     gold 0.34, slate 0.39, so every near-hue pair differs in lightness too.
+
+     `-hi` is the gradient top, kept close to the base so the dot stays matte
+     rather than glossy. */
+  --color-status-ok: #4f9271; /* forest — reporting normally          */
+  --color-status-ok-hi: #5ca37f;
+  --color-status-warn: #c6963a; /* gold   — quiet or unreachable      */
+  --color-status-warn-hi: #d4a448;
+  --color-status-error: #b85f4c; /* brick  — faulted                  */
+  --color-status-error-hi: #c66e5b;
+  --color-status-unknown: #a1a8b1; /* slate  — never seen             */
+  --color-status-unknown-hi: #afb5bd;
 
   /* Chart series palette. Order matters: chambers take colours from this
      list in sequence, and the choice is remembered per device. */
@@ -76,9 +93,31 @@
   --shadow-control-accent: 0 1px 2px rgb(6 32 80 / 0.35),
     0 2px 5px -2px rgb(6 32 80 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.18);
 
+  /* A status dot reads as a physical bead rather than a printed circle: a
+     hairline darker rim and the faintest lift. The top highlight is kept low —
+     a strong specular edge is what makes a small dot look plastic. */
+  --shadow-status-dot: inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 0 0 1px rgb(0 0 0 / 0.1), 0 1px 1px rgb(0 0 0 / 0.07);
+
+  /* A slow halo for a device that is actively reporting. Deliberately calm —
+     this can appear on twenty rows at once. */
+  --animate-status-pulse: status-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
   /* Radii. Controls sit at 8px — rounder than the wireframe's 6px, which is
      what reads as "considered" rather than "default". */
   --radius-control: 8px;
+}
+
+@keyframes status-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
 }
 
 @layer base {
