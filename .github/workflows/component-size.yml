@@ -1,0 +1,23 @@
+name: Component size
+
+# The team's rule is that no single component exceeds 300 lines, so each one
+# stays readable in a sitting and fits in an AI context window whole. A rule
+# nothing enforces stops being true after a fortnight, so this checks it on
+# every push.
+on: push
+
+jobs:
+  check:
+    name: 300-line limit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      # No `npm ci`: the script only reads files, so there is nothing to
+      # install and the job finishes in seconds.
+      - name: Check component sizes
+        run: node scripts/check-component-size.mjs
