@@ -1,16 +1,46 @@
 @import "tailwindcss";
 
-/* Design tokens taken from the P24 wireframe.
-   Tailwind v4 is configured in CSS — there is no tailwind.config.js. */
-@theme {
-  /* Status colours. Used by StatusDot and the map pins. */
-  --color-status-ok: #22c55e;      /* green  — device reporting normally   */
-  --color-status-warn: #f59e0b;    /* amber  — quiet or unreachable        */
-  --color-status-error: #ef4444;   /* red    — faulted                     */
-  --color-status-unknown: #9ca3af; /* grey   — never seen                  */
+/* ---------------------------------------------------------------------------
+   P24 design tokens.
 
-  /* Chart series palette. Order matters: chambers are assigned colours
-     from this list in sequence, and the choice is remembered per device. */
+   Structure and colour come from the client-approved wireframe. The finish —
+   gradients, hairline highlights, soft elevation, spring on press — is ours,
+   aiming at the level of polish Apple applies to its own dashboards.
+
+   Tailwind v4 is configured here in CSS. There is no tailwind.config.js.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Type. SF Pro on Apple hardware, sensible fallbacks elsewhere. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter",
+    "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  /* Surfaces */
+  --color-canvas: #f5f5f7; /* page background                        */
+  --color-surface: #ffffff; /* cards, panels, outlined controls       */
+  --color-surface-hi: #fbfbfc; /* gradient foot of a white control    */
+  --color-surface-lo: #f1f1f3; /* white control, hovered              */
+
+  /* Ink — the solid dark used for primary actions and body text.
+     `-hi` is the top of the gradient, giving the surface a lit edge. */
+  --color-ink: #333333;
+  --color-ink-hi: #4a4a4a;
+  --color-ink-hover: #3d3d3d;
+  --color-ink-hover-hi: #565656;
+
+  /* Lines */
+  --color-line: #e3e3e6; /* hairline borders and dividers            */
+  --color-line-strong: #d6d6da; /* borders that need to read crisply */
+
+  --color-accent: #2a78d6; /* selected segment, links, focus ring     */
+
+  /* Status. Used by StatusDot and the map pins. */
+  --color-status-ok: #22c55e; /* green  — reporting normally          */
+  --color-status-warn: #f59e0b; /* amber  — quiet or unreachable      */
+  --color-status-error: #ef4444; /* red    — faulted                  */
+  --color-status-unknown: #9ca3af; /* grey   — never seen             */
+
+  /* Chart series palette. Order matters: chambers take colours from this
+     list in sequence, and the choice is remembered per device. */
   --color-series-1: #2563eb;
   --color-series-2: #f59e0b;
   --color-series-3: #22c55e;
@@ -19,4 +49,31 @@
   --color-series-6: #14b8a6;
   --color-series-7: #ec4899;
   --color-series-8: #64748b;
+
+  /* Elevation. Each pairs a soft drop shadow with an inset hairline along the
+     top edge — that highlight is what makes a control look lit rather than
+     printed, and it is most of the difference between flat and refined. */
+  --shadow-control: 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 1px rgb(0 0 0 / 0.03),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --shadow-control-solid: 0 1px 2px rgb(0 0 0 / 0.2),
+    0 2px 6px -2px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.13);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -4px rgb(0 0 0 / 0.06);
+
+  /* Radii. Controls sit at 8px — rounder than the wireframe's 6px, which is
+     what reads as "considered" rather than "default". */
+  --radius-control: 8px;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-canvas);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    /* Thinner, cleaner glyph rendering on macOS. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }

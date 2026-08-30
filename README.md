@@ -44,6 +44,29 @@ src/
 └── App.tsx           The component gallery
 ```
 
+## Design language
+
+The wireframe is a **low-fidelity reference for structure and colour, not a finish line.** Build to
+the standard Apple applies to its own dashboards: restrained, precise, and physical without being
+decorative.
+
+Five rules produce most of that difference:
+
+1. **A fine vertical gradient on filled surfaces.** Never a flat fill. Light at the top, base colour
+   at the foot — it reads as a lit surface rather than a printed rectangle.
+2. **An inset hairline along the top edge.** `inset 0 1px 0 rgb(255 255 255 / …)`. This is the single
+   highest-value detail and the one most often skipped.
+3. **Soft, short-range elevation.** A 1–2px shadow at 5–20% opacity. Never a large blurry drop.
+4. **Spring on press.** `active:scale-[0.97]`, gradient flattened, shadow removed — the control moves
+   under the finger. Keep the press transition faster than the hover one.
+5. **Tight typography.** `tracking-[-0.006em]` at body sizes, medium weight, and font smoothing on.
+
+Radii live at 8px (`rounded-control`) for controls and 12px for panels. Both are rounder than the
+wireframe's 6px, which is most of what separates "considered" from "default".
+
+Everything above is already expressed as tokens in `src/index.css` — use `shadow-control`,
+`shadow-control-solid`, `rounded-control` and the colour tokens rather than re-deriving values.
+
 ## House rules
 
 - **300 lines maximum per component.** Split rather than exceed it. This keeps files easy to review
