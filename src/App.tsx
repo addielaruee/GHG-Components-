@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { Card } from '@/components/layout/Card'
+import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { SidebarNav } from '@/components/layout/SidebarNav'
 import { Badge } from '@/components/primitives/Badge'
@@ -571,6 +573,149 @@ export default function App() {
               />
             </div>
           </div>
+        </Section>
+
+        <Section
+          title="DetailHeader"
+          note="All three device pages. The array chamber is the interesting one: two badges, and its location inherited from the analyser."
+        >
+          <div className="divide-y divide-line">
+            <DetailHeader
+              breadcrumb={
+                <Breadcrumb
+                  items={[
+                    { id: 'devices', label: 'Devices' },
+                    { id: 'ch-s21', label: 'CH-S21' },
+                  ]}
+                  onNavigate={setCrumb}
+                />
+              }
+              status="ok"
+              title="CH-S21"
+              badges={<Badge>Standalone chamber</Badge>}
+              meta={['IP: 192.168.1.51', 'Location: 54.315, −2.100', 'last row 2 s ago']}
+              actions={
+                <>
+                  <Button size="sm">Rename</Button>
+                  <Button size="sm">Edit device</Button>
+                  <Button size="sm" variant="primary">
+                    Export raw data
+                  </Button>
+                </>
+              }
+            />
+            <DetailHeader
+              breadcrumb={
+                <Breadcrumb
+                  items={[
+                    { id: 'devices', label: 'Devices' },
+                    { id: 'analyser', label: 'Analyser' },
+                    { id: 'ch-01', label: 'CH-01' },
+                  ]}
+                  onNavigate={setCrumb}
+                />
+              }
+              status="ok"
+              title="CH-01"
+              badges={
+                <>
+                  <Badge>Array chamber</Badge>
+                  <Badge variant="outline">read-only</Badge>
+                </>
+              }
+              meta={[
+                'Reported by Analyser',
+                'array position 1 of 8',
+                'Location: inherits analyser',
+                'last row 12 s ago',
+              ]}
+              actions={
+                <>
+                  <Button size="sm">Rename</Button>
+                  <Button size="sm">Open analyser</Button>
+                  <Button size="sm" variant="primary">
+                    Export raw data
+                  </Button>
+                </>
+              }
+            />
+            <DetailHeader
+              breadcrumb={
+                <Breadcrumb
+                  items={[
+                    { id: 'devices', label: 'Devices' },
+                    { id: 'ch-s23', label: 'CH-S23' },
+                  ]}
+                  onNavigate={setCrumb}
+                />
+              }
+              status="warn"
+              title="CH-S23"
+              badges={
+                <>
+                  <Badge>Standalone chamber</Badge>
+                  <Badge tone="warn" variant="outline" dot>
+                    No response
+                  </Badge>
+                </>
+              }
+              meta={['IP: 192.168.1.53', 'unreachable since 09:14']}
+              actions={<Button size="sm">Rename</Button>}
+            />
+          </div>
+        </Section>
+
+        <Section title="Card" note="Header and footer bands are optional. Use flush for content that should reach the edges.">
+          <Row label="plain">
+            <div className="w-72">
+              <Card>
+                <p className="text-sm text-ink/70">Body only.</p>
+              </Card>
+            </div>
+          </Row>
+          <Row label="three bands">
+            <div className="w-72">
+              <Card
+                header={
+                  <div className="flex items-center gap-2">
+                    <StatusDot status="ok" label={null} />
+                    <span className="text-sm font-semibold">CH-S21</span>
+                    <span className="text-[13px] text-ink/55">· standalone</span>
+                  </div>
+                }
+                footer={
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[13px] text-ink/55">Latest CO₂ flux · cycle 15:02</span>
+                    <span className="flex items-center gap-1 text-sm font-medium">
+                      5.10 <TrendArrow direction="up" />
+                    </span>
+                  </div>
+                }
+              >
+                <p className="text-sm text-ink/70">
+                  Lid closed · fan on · Mode status 2
+                </p>
+              </Card>
+            </div>
+          </Row>
+          <Row label="flush">
+            <div className="w-72">
+              <Card
+                flush
+                header={<span className="text-sm font-semibold">Array chambers</span>}
+              >
+                {/* A table would reach the card's edges rather than sitting inside padding. */}
+                <div className="divide-y divide-line text-[13px]">
+                  {['CH-01', 'CH-02', 'CH-03'].map((id) => (
+                    <div key={id} className="flex justify-between px-4 py-2">
+                      <span className="font-medium">{id}</span>
+                      <span className="text-ink/55">closed · fan on</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </Row>
         </Section>
 
         <Section

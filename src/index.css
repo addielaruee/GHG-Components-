@@ -3,8 +3,8 @@
 /* ---------------------------------------------------------------------------
    P24 design tokens.
 
-   Structure and colour come from the client-approved wireframe. The finish —
-   gradients, hairline highlights, soft elevation, spring on press — is ours,
+   Structure and colour come from the client-approved wireframe. The finish -
+   gradients, hairline highlights, soft elevation, spring on press, is ours,
    aiming at the level of polish Apple applies to its own dashboards.
 
    Tailwind v4 is configured here in CSS. There is no tailwind.config.js.
@@ -20,7 +20,7 @@
   --color-surface-hi: #fbfbfc; /* gradient foot of a white control    */
   --color-surface-lo: #f1f1f3; /* white control, hovered              */
 
-  /* Ink — the solid dark used for primary actions and body text.
+  /* Ink, the solid dark used for primary actions and body text.
      `-hi` is the top of the gradient, giving the surface a lit edge. */
   --color-ink: #333333;
   --color-ink-hi: #4a4a4a;
@@ -31,11 +31,11 @@
   --color-line: #e3e3e6; /* hairline borders and dividers            */
   --color-line-strong: #d6d6da; /* borders that need to read crisply */
 
-  /* Accent — selected segment, links, focus ring. `-hi` is the gradient top.
+  /* Accent, selected segment, links, focus ring. `-hi` is the gradient top.
      A deep royal blue rather than a bright azure. Bright mid-blues are the
      default everything reaches for, which is why they read as generic; going
      darker and more saturated gives the selected state weight and lets white
-     text sit on it comfortably. The gradient range stays narrow — a wide
+     text sit on it comfortably. The gradient range stays narrow, a wide
      light-to-dark spread reads as plastic. */
   --color-accent: #0d47a1;
   --color-accent-hi: #17539c;
@@ -43,7 +43,7 @@
   --color-accent-hover-hi: #1b5fb0;
 
   /* Status. Used by StatusDot and the map pins.
-     A muted, matte family — forest, gold, brick, slate. Saturation stays low so
+     A muted, matte family, forest, gold, brick, slate. Saturation stays low so
      they read as considered rather than as signal lights, but lightness sits
      mid-range: an earlier pass went too dark and the four collapsed into
      near-black at 8px.
@@ -56,13 +56,13 @@
 
      `-hi` is the gradient top, kept close to the base so the dot stays matte
      rather than glossy. */
-  --color-status-ok: #4f9271; /* forest — reporting normally          */
+  --color-status-ok: #4f9271; /* forest, reporting normally          */
   --color-status-ok-hi: #5ca37f;
-  --color-status-warn: #c6963a; /* gold   — quiet or unreachable      */
+  --color-status-warn: #c6963a; /* gold  , quiet or unreachable      */
   --color-status-warn-hi: #d4a448;
-  --color-status-error: #b85f4c; /* brick  — faulted                  */
+  --color-status-error: #b85f4c; /* brick , faulted                  */
   --color-status-error-hi: #c66e5b;
-  --color-status-unknown: #a1a8b1; /* slate  — never seen             */
+  --color-status-unknown: #a1a8b1; /* slate , never seen             */
   --color-status-unknown-hi: #afb5bd;
 
   /* Darkened for text. The dot colours are tuned to read as a filled bead
@@ -84,34 +84,34 @@
   --color-series-8: #64748b;
 
   /* Elevation. Each pairs a soft drop shadow with an inset hairline along the
-     top edge — that highlight is what makes a control look lit rather than
+     top edge, that highlight is what makes a control look lit rather than
      printed, and it is most of the difference between flat and refined. */
   --shadow-control: 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 1px rgb(0 0 0 / 0.03),
     inset 0 1px 0 rgb(255 255 255 / 0.9);
   --shadow-control-solid: 0 1px 2px rgb(0 0 0 / 0.2),
     0 2px 6px -2px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.13);
   --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -4px rgb(0 0 0 / 0.06);
-  /* A recessed well — used by the segmented control's track so the selected
+  /* A recessed well, used by the segmented control's track so the selected
      pill reads as sitting on top of it rather than punched into it. */
   --shadow-track: inset 0 1px 2px rgb(0 0 0 / 0.045);
   /* Elevation for an accent-filled surface. The shadow carries the hue rather
-     than being neutral grey — a grey shadow under a coloured control is one of
+     than being neutral grey, a grey shadow under a coloured control is one of
      the clearest tells of unconsidered UI. */
   --shadow-control-accent: 0 1px 2px rgb(6 32 80 / 0.35),
     0 2px 5px -2px rgb(6 32 80 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.18);
 
   /* A status dot reads as a physical bead rather than a printed circle: a
-     hairline darker rim and the faintest lift. The top highlight is kept low —
+     hairline darker rim and the faintest lift. The top highlight is kept low -
      a strong specular edge is what makes a small dot look plastic. */
   --shadow-status-dot: inset 0 1px 0 rgb(255 255 255 / 0.18),
     inset 0 0 0 1px rgb(0 0 0 / 0.1), 0 1px 1px rgb(0 0 0 / 0.07);
 
-  /* A slow halo for a device that is actively reporting. Deliberately calm —
+  /* A slow halo for a device that is actively reporting. Deliberately calm -
      this can appear on twenty rows at once. */
   --animate-status-pulse: status-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  /* Control heights. Every interactive control — Button, IconButton,
-     SegmentedControl, TextInput, Select — is sized from these rather than from
+  /* Control heights. Every interactive control, Button, IconButton,
+     SegmentedControl, TextInput, Select, is sized from these rather than from
      its own padding arithmetic. Padding maths drifts: four of them had ended up
      at 32, 34 and 36px, which is invisible in isolation and obvious the moment
      two sit in the same row. */
@@ -122,9 +122,11 @@
      and anything that has to align to the content column, both need it. */
   --spacing-sidebar: 12.25rem; /* 196px */
 
-  /* Radii. Controls sit at 8px — rounder than the wireframe's 6px, which is
-     what reads as "considered" rather than "default". */
+  /* Radii, and only two of them. Controls sit at 8px and panels at 12px, both
+     rounder than the wireframe's 6px, which is most of what reads as
+     "considered" rather than "default". */
   --radius-control: 8px;
+  --radius-panel: 12px;
 }
 
 @keyframes status-pulse {
