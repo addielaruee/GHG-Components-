@@ -27,8 +27,15 @@ import type { ArrayChamberReading, StandaloneChamberReading } from '@/types/read
  *   - **Unfitted sensors are null throughout**, never 0.
  */
 
-const now = new Date('2026-08-30T15:02:00Z')
-const ago = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString()
+/**
+ * Anchored to the real clock, not a fixed date.
+ *
+ * These were pinned to a literal timestamp at first, which made every "last row
+ * 2 min ago" render as "unreachable since 01:00" once the wall clock moved past
+ * it. Mock timestamps that describe elapsed time have to be relative, or every
+ * device looks dead by tomorrow.
+ */
+const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
 
 function arrayReading(
   chamberId: string,

@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
+import { AnalyserCard } from '@/components/data/AnalyserCard'
 import { BulkActionBar } from '@/components/data/BulkActionBar'
+import { ChannelChipRow } from '@/components/data/ChannelChipRow'
+import { DeviceCard } from '@/components/data/DeviceCard'
+import { LegendPanel } from '@/components/data/LegendPanel'
+import { PlacedDevicesList } from '@/components/data/PlacedDevicesList'
+import { ShowMoreRow } from '@/components/data/ShowMoreRow'
+import { SummaryTable } from '@/components/data/SummaryTable'
 import { DataTable, type Column } from '@/components/data/DataTable'
 import { Pagination } from '@/components/data/Pagination'
 import { StatStrip } from '@/components/data/StatStrip'
@@ -56,6 +63,13 @@ export default function App() {
   const [crumb, setCrumb] = useState<string | null>(null)
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set(['ch-s21']))
   const [page, setPage] = useState(1)
+  const [channels2, setChannels2] = useState<ReadonlySet<string>>(
+    new Set(['Chamber_Temp_C', 'Chamber_RH_%', 'Chamber_Pressure_Pa']),
+  )
+  const [legendOn, setLegendOn] = useState<ReadonlySet<string>>(
+    new Set(['ch-01', 'ch-02', 'ch-03', 'ch-s21', 'ch-s22']),
+  )
+  const [placed, setPlaced] = useState<string | null>('anlz-1')
   const [feed, setFeed] = useState('live')
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
@@ -503,6 +517,128 @@ export default function App() {
                 <div className="px-3 py-2 text-[13px] font-semibold">CH-04</div>
                 <StatStrip size="sm" stats={quietStats} />
               </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="DeviceCard · AnalyserCard"
+          note="The card view. CollapsedDeviceRow is this card closed, not a separate component."
+        >
+          <div className="grid gap-3 p-5 lg:grid-cols-2">
+            <AnalyserCard
+              analyser={analyser}
+              stats={analyserGasStats}
+              chambers={arrayChambers}
+              columns={NESTED_COLUMNS}
+            />
+            <div className="flex flex-col gap-3">
+              <DeviceCard device={standaloneChambers[0]} stats={cardStats(standaloneChambers[0])} />
+              {/* Unreachable: no reading at all, so it cannot open. */}
+              <DeviceCard
+                device={standaloneChambers[2]}
+                stats={[]}
+                aside={
+                  <Badge tone="warn" variant="outline" size="sm">
+                    No response
+                  </Badge>
+                }
+              />
+              {/* Reporting, but closed by default. */}
+              <DeviceCard
+                device={standaloneChambers[4]}
+                stats={cardStats(standaloneChambers[4])}
+                defaultCollapsed
+              />
+              <ShowMoreRow variant="panel">8 more standalone chambers</ShowMoreRow>
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="ShowMoreRow"
+          note="Two treatments. The dashed panel holds the space the hidden cards would fill."
+        >
+          <Row label="link">
+            <div className="w-96 rounded-panel border border-line-strong">
+              <ShowMoreRow>Show 4 more array chambers</ShowMoreRow>
+            </div>
+          </Row>
+          <Row label="panel">
+            <div className="w-96">
+              <ShowMoreRow variant="panel">8 more standalone chambers</ShowMoreRow>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="ChannelChipRow"
+          note="The client's requirement that users pick which measurements they see."
+        >
+          <div className="px-5 py-4">
+            <ChannelChipRow
+              channels={CHANNELS}
+              selected={channels2}
+              onEdit={() => {}}
+              onToggle={(id) =>
+                setChannels2((c) => {
+                  const next = new Set(c)
+                  if (next.has(id)) next.delete(id)
+                  else next.add(id)
+                  return next
+                })
+              }
+            />
+          </div>
+        </Section>
+
+        <Section
+          title="LegendPanel · SummaryTable"
+          note="The flux summary's right rail. Grouped by device kind, because CH₄ and N₂O exist only on the array."
+        >
+          <div className="grid gap-3 p-5 sm:grid-cols-2">
+            <div className="rounded-panel border border-line-strong bg-surface shadow-panel">
+              <LegendPanel
+                groups={LEGEND_GROUPS}
+                selected={legendOn}
+                onToggle={(id) =>
+                  setLegendOn((c) => {
+                    const next = new Set(c)
+                    if (next.has(id)) next.delete(id)
+                    else next.add(id)
+                    return next
+                  })
+                }
+              />
+            </div>
+            <div className="self-start rounded-panel border border-line-strong bg-surface shadow-panel">
+              <SummaryTable
+                rows={[
+                  { label: <>CO₂</>, mean: 3.24, sd: 0.91 },
+                  { label: <>CH₄</>, mean: 0.86, sd: 0.34 },
+                  { label: <>N₂O</>, mean: 0.21, sd: 0.12 },
+                  { label: <>H₂O</>, mean: 1.42, sd: 0.28 },
+                  { label: <>NH₃</>, mean: null, sd: null },
+                ]}
+              />
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          title="PlacedDevicesList"
+          note="The map's right rail. Named for what it is: chambers have no GPS, so a device stays unplaced until someone types coordinates."
+        >
+          <div className="grid gap-3 p-5 sm:grid-cols-2">
+            <div className="rounded-panel border border-line-strong bg-surface shadow-panel">
+              <PlacedDevicesList
+                devices={PLACED}
+                selectedId={placed}
+                onSelect={setPlaced}
+              />
+            </div>
+            <div className="self-start rounded-panel border border-line-strong bg-surface shadow-panel">
+              <PlacedDevicesList title="Placed devices" devices={[]} />
             </div>
           </div>
         </Section>
@@ -1022,6 +1158,103 @@ export default function App() {
   )
 }
 
+/** The analyser's gas strip: the four gases, and only the analyser has them. */
+const analyserGasStats = [
+  { label: <>CO₂</>, value: <>{analyser.latest?.co2} ppm</> },
+  { label: <>CH₄</>, value: <>{analyser.latest?.ch4} ppm</> },
+  { label: <>N₂O</>, value: <>{(analyser.latest!.n2o! * 1000).toFixed(0)} ppb</> },
+  { label: <>H₂O</>, value: <>{analyser.latest?.h2o} mmol</> },
+]
+
+/** The five fields a standalone card shows, from the wireframe. */
+function cardStats(c: StandaloneChamber) {
+  const r = c.latest
+  if (!r) return []
+  return [
+    { label: 'CO2_ppm', value: num(r.co2Ppm, 0) },
+    { label: 'SoilT_C', value: num(r.soilTC) },
+    { label: 'SoilM_Raw', value: num(r.soilMRaw, 0) },
+    { label: 'Temp C', value: num(r.chamberTempC) },
+    { label: 'UsedSD', value: num(r.usedSd, 2) },
+  ]
+}
+
+/** Compact columns for the table nested inside the analyser's card. */
+const NESTED_COLUMNS: Column<ArrayChamber>[] = [
+  { key: 'name', header: 'ChamberID', cell: (c) => <span className="font-medium">{c.name}</span> },
+  { key: 'lid', header: 'Lid',
+    cell: (c) => (c.latest ? (c.latest.lidStatus === 'Close' ? 'closed' : 'open') : <EmptyValue />) },
+  { key: 'fan', header: 'Fan', cell: (c) => c.latest?.fanStatus.toLowerCase() ?? <EmptyValue /> },
+  { key: 'mode', header: 'Mode status', cell: (c) => c.latest?.modeStatus ?? <EmptyValue /> },
+  { key: 'avsd', header: 'avSD', align: 'right', cell: (c) => num(c.latest?.avSd ?? null, 2) },
+  { key: 'totalsd', header: 'totalSD', align: 'right', cell: (c) => num(c.latest?.totalSd ?? null, 2) },
+  {
+    key: 'flux', header: <>CO₂ flux</>, align: 'right',
+    cell: (c) =>
+      c.latestFlux?.value == null ? (
+        <EmptyValue />
+      ) : (
+        <span className="inline-flex items-center gap-1 font-semibold">
+          {c.latestFlux.value.toFixed(2)} <TrendArrow direction="up" />
+        </span>
+      ),
+  },
+]
+
+/** Every channel a chamber file can carry. Three are not fitted on this rig. */
+const CHANNELS = [
+  { id: 'Chamber_Temp_C' },
+  { id: 'Chamber_RH_%' },
+  { id: 'Chamber_Pressure_Pa' },
+  { id: 'SoilM_Raw' },
+  { id: 'avSD' },
+  { id: 'totalSD' },
+  { id: 'UsedSD' },
+  { id: 'SoilT_C', notFitted: true },
+  { id: 'Soil_EC', notFitted: true },
+  { id: 'Light_Down', notFitted: true },
+]
+
+const SERIES_COLOURS = [
+  'var(--color-series-1)', 'var(--color-series-2)', 'var(--color-series-3)',
+  'var(--color-series-4)', 'var(--color-series-5)', 'var(--color-series-6)',
+]
+
+const LEGEND_GROUPS = [
+  {
+    label: 'Array · analyser',
+    series: arrayChambers.slice(0, 4).map((c, i) => ({
+      id: c.id,
+      label: c.name,
+      colour: SERIES_COLOURS[i],
+      dash: (['solid', 'dashed', 'dotted', 'solid'] as const)[i],
+      value: c.latestFlux?.value ?? null,
+    })),
+    hiddenCount: arrayChambers.length - 4,
+  },
+  {
+    label: 'Standalone',
+    series: standaloneChambers.slice(0, 2).map((c, i) => ({
+      id: c.id,
+      label: c.name,
+      colour: SERIES_COLOURS[i + 3],
+      value: c.latestFlux?.value ?? null,
+    })),
+    hiddenCount: standaloneChambers.length - 2,
+  },
+]
+
+const PLACED = [
+  { id: analyser.id, name: analyser.name, status: analyser.status,
+    meta: [`${arrayChambers.length} array chambers`] },
+  ...standaloneChambers
+    .filter((c) => c.location !== null)
+    .map((c) => ({
+      id: c.id, name: c.name, status: c.status,
+      meta: ['standalone', c.latest === null ? 'no response' : c.ipAddress],
+    })),
+]
+
 /** The full record from the chamber detail page. */
 const ch = standaloneChambers[0].latest!
 const chamberStats = [
@@ -1128,6 +1361,11 @@ const SECTION_INDEX = [
   'IconButton · TextLink · TrendArrow · EmptyValue',
   'Chip',
   'StatStrip',
+  'DeviceCard · AnalyserCard',
+  'ShowMoreRow',
+  'ChannelChipRow',
+  'LegendPanel · SummaryTable',
+  'PlacedDevicesList',
   'TableSectionHeader',
   'BulkActionBar · Pagination',
   'DataTable',
