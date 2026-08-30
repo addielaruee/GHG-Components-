@@ -51,7 +51,7 @@ focus rings, ARIA. Specifically worth knowing, because these look passive but ar
 |---|---|---|
 | The Cards / Table / Map toggle changes nothing | Those three screens are separate components | Tier 3 (`DataTable`, `DeviceCard`, `AnalyserCard`) and Tier 6 (`MapCanvas`) |
 | No navigation between sections | There is no router, and routing was never specified in the W3 proposal | A team decision, see below |
-| No real data anywhere | No API client and no mock data layer yet | The backend API contract |
+| No real data anywhere | Mocks exist in `src/mocks/`, but nothing fetches | The backend API contract |
 | `DemoSidebar` in `App.tsx` | A gallery stand-in so AppShell can be seen. It is **not** the real component | `SidebarNav`, next in the inventory |
 
 ### TODO before this becomes an app
@@ -60,8 +60,10 @@ focus rings, ARIA. Specifically worth knowing, because these look passive but ar
       obvious default, but nobody has picked it and nobody owns it.
 - [ ] **Agree the API contract** with whoever builds the Python backend, so the frontend can be
       written against a typed mock instead of waiting.
-- [ ] **Build a mock data layer** from the client's real sample files, including the malformed cases:
-      a null-byte row, a missing hour, a device that stops answering.
+- [x] ~~**Build a mock data layer**~~ Done. `src/types/` and `src/mocks/`, taken from the client's
+      real sample files. The fleet deliberately carries the awkward cases: the array skips position
+      5, one array chamber has gone quiet with stale readings still on file, one standalone chamber
+      is unreachable with no reading at all, and one has never produced a flux.
 - [ ] **Decide who assembles screens** from these components. The Week 8 client deployment needs a
       running application, not a component set, and that step currently has no owner.
 - [ ] Replace `DemoSidebar` with the real `SidebarNav` once it lands.
@@ -78,8 +80,11 @@ src/
 │   └── overlays/     Modal, Popover, ColourPicker, LineStylePicker
 ├── types/            Domain types. Array and standalone chambers are a
 │                     discriminated union, since they report different fields.
+│                     Every sensor value is `number | null`, never optional and
+│                     never 0.
 ├── lib/              Shared helpers
-├── mocks/            Sample data, including deliberately malformed records
+├── mocks/            A fleet and time series shaped like the client's real
+│                     data, awkward cases included
 └── App.tsx           The component gallery
 ```
 

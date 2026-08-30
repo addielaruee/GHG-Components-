@@ -28,6 +28,7 @@ import {
 } from '@/components/primitives/icons'
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
+import { arrayChambers, standaloneChambers } from '@/mocks/devices'
 
 /**
  * Component gallery.
@@ -370,11 +371,11 @@ export default function App() {
             <div className="w-56">
               <Select
                 label="Chamber"
-                hint="MPVPosition, the client's own request."
+                hint="MPVPosition. Note the gap: the client's rig has no position 5."
                 defaultValue="1"
-                options={[1, 2, 3, 4, 6, 7, 8].map((n) => ({
-                  value: String(n),
-                  label: `CH-0${n}`,
+                options={arrayChambers.map((chamber) => ({
+                  value: String(chamber.position),
+                  label: chamber.name,
                 }))}
               />
             </div>
@@ -766,15 +767,27 @@ export default function App() {
                     the sidebar and header hold their position. The real screens that render per
                     view are Tier 3 and do not exist yet.
                   </p>
-                  {Array.from({ length: 14 }, (_, i) => (
+                  {/* Real mock devices, so the shapes get exercised rather than
+                      a second set of invented rows drifting from them. */}
+                  {[...standaloneChambers, ...arrayChambers].map((device) => (
                     <div
-                      key={i}
+                      key={device.id}
                       className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm"
                     >
-                      <StatusDot status={i === 3 ? 'warn' : 'ok'} label={null} />
-                      <span className="font-medium">CH-S{21 + i}</span>
+                      <StatusDot status={device.status} label={null} />
+                      <span className="font-medium">{device.name}</span>
                       <span className="text-gray-500">
-                        {i === 3 ? '· unreachable since 09:14' : '· standalone · last row 2 min ago'}
+                        · {device.kind === 'array' ? 'array' : 'standalone'} ·{' '}
+                        {device.latest === null
+                          ? 'no reading'
+                          : `${device.latest.lidStatus === 'Close' ? 'lid closed' : 'lid open'}, fan ${device.latest.fanStatus.toLowerCase()}`}
+                      </span>
+                      <span className="ml-auto text-gray-400">
+                        {device.latestFlux?.value == null ? (
+                          <EmptyValue reason="No flux computed yet" />
+                        ) : (
+                          `${device.latestFlux.value.toFixed(2)} µmol m⁻² s⁻¹`
+                        )}
                       </span>
                     </div>
                   ))}
