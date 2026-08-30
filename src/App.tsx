@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
+import { BulkActionBar } from '@/components/data/BulkActionBar'
 import { DataTable, type Column } from '@/components/data/DataTable'
+import { Pagination } from '@/components/data/Pagination'
 import { StatStrip } from '@/components/data/StatStrip'
 import { TableSectionHeader } from '@/components/data/TableSectionHeader'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
@@ -52,6 +55,7 @@ export default function App() {
   const [navDemo, setNavDemo] = useState('devices')
   const [crumb, setCrumb] = useState<string | null>(null)
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set(['ch-s21']))
+  const [page, setPage] = useState(1)
   const [feed, setFeed] = useState('live')
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
@@ -68,11 +72,29 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="border-b border-line bg-surface/80 px-8 py-5 backdrop-blur-xl">
-        <h1 className="text-[15px] font-semibold tracking-[-0.01em]">GHG Components</h1>
-        <p className="mt-0.5 text-[13px] text-gray-500">
-          P24: GHG chamber monitoring dashboard. Component gallery.
-        </p>
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/85 px-8 py-3 backdrop-blur-xl">
+        <div className="flex flex-wrap items-baseline gap-x-3">
+          <h1 className="text-[15px] font-semibold tracking-[-0.01em]">GHG Components</h1>
+          <p className="text-[13px] text-gray-500">
+            P24: GHG chamber monitoring dashboard. {SECTION_INDEX.length} sections.
+          </p>
+        </div>
+        <nav aria-label="Jump to component" className="mt-2 flex flex-wrap gap-1">
+          {SECTION_INDEX.map((title) => (
+            <a
+              key={title}
+              href={`#${slug(title)}`}
+              className={cn(
+                'rounded-full border border-line-strong bg-surface px-2 py-px',
+                'text-[11px] text-ink/70 transition-colors duration-150',
+                'hover:border-accent/40 hover:text-accent',
+                'outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30',
+              )}
+            >
+              {title}
+            </a>
+          ))}
+        </nav>
       </header>
 
       <main className="mx-auto max-w-4xl space-y-6 p-8">
@@ -520,6 +542,50 @@ export default function App() {
         </Section>
 
         <Section
+          title="BulkActionBar · Pagination"
+          note="Both live around a table. Shown standalone here, and in place in the DataTable section below."
+        >
+          <Row label="nothing selected">
+            <div className="w-full max-w-2xl">
+              <BulkActionBar selectedCount={0} meta={['23 devices', 'latest record']} />
+            </div>
+          </Row>
+          <Row label="rows selected">
+            <div className="w-full max-w-2xl">
+              <BulkActionBar
+                selectedCount={2}
+                actions={
+                  <>
+                    <Button size="sm">Rename</Button>
+                    <Button size="sm">Remove</Button>
+                  </>
+                }
+                meta={['23 devices', 'latest record']}
+              />
+            </div>
+            <p className="basis-full text-xs text-gray-400">
+              The pale blue tint is the wireframe&rsquo;s, and it is the point: it stops
+              &ldquo;Remove&rdquo; being pressed without noticing that six rows are ticked, not one.
+            </p>
+          </Row>
+          <Row label="pagination">
+            <div className="w-full max-w-2xl">
+              <Pagination page={page} pageSize={15} total={23} onPageChange={setPage} />
+            </div>
+          </Row>
+          <Row label="one page">
+            <div className="w-full max-w-2xl">
+              <Pagination page={1} pageSize={15} total={6} onPageChange={() => {}} />
+            </div>
+          </Row>
+          <Row label="empty">
+            <div className="w-full max-w-2xl">
+              <Pagination page={1} pageSize={15} total={0} onPageChange={() => {}} />
+            </div>
+          </Row>
+        </Section>
+
+        <Section
           title="DataTable"
           note="Column-driven, because it appears five times with different columns. Numbers right-align; nulls sort last."
         >
@@ -561,7 +627,18 @@ export default function App() {
                   `${standaloneChambers.length} shown`,
                 ]}
               />
-              <div className="mt-1 rounded-panel border border-line">
+              <div className="mt-1 overflow-hidden rounded-panel border border-line">
+                <BulkActionBar
+                  className="border-t-0"
+                  selectedCount={picked.size}
+                  actions={
+                    <>
+                      <Button size="sm">Rename</Button>
+                      <Button size="sm">Remove</Button>
+                    </>
+                  }
+                  meta={[`${standaloneChambers.length} devices`, 'latest record']}
+                />
                 <DataTable
                   rows={standaloneChambers}
                   rowKey={(c) => c.id}
@@ -571,6 +648,12 @@ export default function App() {
                     onChange: setPicked,
                     label: (c) => `Select ${c.name}`,
                   }}
+                />
+                <Pagination
+                  page={1}
+                  pageSize={15}
+                  total={standaloneChambers.length}
+                  onPageChange={() => {}}
                 />
               </div>
               <p className="mt-2 text-xs text-gray-400">
@@ -1030,6 +1113,32 @@ const STANDALONE_COLUMNS: Column<StandaloneChamber>[] = [
     cell: (c) => num(c.latestFlux?.value ?? null, 2) },
 ]
 
+/**
+ * Every section in page order, for the jump index. Kept as a list rather than
+ * derived from the DOM so the order is declared in one place and a missing
+ * entry is obvious.
+ */
+const SECTION_INDEX = [
+  'Button',
+  'SegmentedControl',
+  'StatusDot',
+  'Badge',
+  'Checkbox',
+  'TextInput · SearchInput · Select',
+  'IconButton · TextLink · TrendArrow · EmptyValue',
+  'Chip',
+  'StatStrip',
+  'TableSectionHeader',
+  'BulkActionBar · Pagination',
+  'DataTable',
+  'SidebarNav',
+  'Breadcrumb',
+  'PageHeader',
+  'DetailHeader',
+  'Card',
+  'AppShell',
+]
+
 /** The app's two sections. Exactly two, and it should stay that way. */
 const SECTIONS = [
   { id: 'dashboards', label: 'Dashboards', icon: <DashboardIcon /> },
@@ -1064,6 +1173,14 @@ function Rule({ dash }: { dash: string }) {
   )
 }
 
+/** A stable anchor from a section title: "BulkActionBar · Pagination" -> "bulkactionbar-pagination". */
+function slug(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
 function Section({
   title,
   note,
@@ -1075,7 +1192,12 @@ function Section({
 }) {
   return (
     // No overflow-hidden: it would clip an open Select menu.
-    <section className="rounded-xl border border-line bg-surface shadow-panel">
+    // scroll-mt clears the sticky header so a jumped-to section is not hidden
+    // underneath it.
+    <section
+      id={slug(title)}
+      className="scroll-mt-28 rounded-xl border border-line bg-surface shadow-panel"
+    >
       <div className="border-b border-line px-5 py-3.5">
         <h2 className="text-[13px] font-semibold tracking-[-0.006em]">{title}</h2>
         {note && <p className="mt-0.5 text-xs text-gray-500">{note}</p>}
