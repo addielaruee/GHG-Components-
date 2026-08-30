@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { SidebarNav } from '@/components/layout/SidebarNav'
 import { Badge } from '@/components/primitives/Badge'
 import { Button } from '@/components/primitives/Button'
@@ -465,6 +466,65 @@ export default function App() {
         </Section>
 
         <Section
+          title="PageHeader"
+          note="Every variant the wireframe uses. No bottom border of its own; AppShell owns that hairline."
+        >
+          <div className="divide-y divide-line">
+            <div className="border-b border-line">
+              <PageHeader
+                title="Devices"
+                actions={
+                  <>
+                    <SegmentedControl
+                      size="sm"
+                      ariaLabel="Device view"
+                      value={view}
+                      onChange={setView}
+                      options={[
+                        { value: 'cards', label: 'Cards' },
+                        { value: 'table', label: 'Table' },
+                        { value: 'map', label: 'Map' },
+                      ]}
+                    />
+                    <Button size="sm" variant="primary">
+                      + Add chamber
+                    </Button>
+                  </>
+                }
+              />
+            </div>
+            <div className="border-b border-line">
+              <PageHeader
+                title="Devices"
+                actions={<Button size="sm" variant="primary">+ Add chamber</Button>}
+              >
+                {/* The Add-chamber screen puts the search inline with the title. */}
+                <div className="w-56">
+                  <SearchInput size="sm" />
+                </div>
+              </PageHeader>
+            </div>
+            <div className="border-b border-line">
+              <PageHeader title="Dashboard" actions={<Button size="sm">Export</Button>} />
+            </div>
+            <div>
+              <PageHeader
+                title="Edit dashboard"
+                meta="unsaved changes"
+                actions={
+                  <>
+                    <Button size="sm">Discard</Button>
+                    <Button size="sm" variant="primary">
+                      Save layout
+                    </Button>
+                  </>
+                }
+              />
+            </div>
+          </div>
+        </Section>
+
+        <Section
           title="AppShell"
           note="The frame all ten screens sit in. Only the content column scrolls; the sidebar and header stay put."
         >
@@ -482,27 +542,27 @@ export default function App() {
                   />
                 }
                 header={
-                  <div className="flex items-center justify-between px-5 py-2.5">
-                    <h3 className="text-base font-semibold tracking-[-0.01em]">
-                      {shellSection === 'devices' ? 'Devices' : 'Dashboard'}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <SegmentedControl
-                        size="sm"
-                        ariaLabel="Device view"
-                        value={shellView}
-                        onChange={setShellView}
-                        options={[
-                          { value: 'cards', label: 'Cards' },
-                          { value: 'table', label: 'Table' },
-                          { value: 'map', label: 'Map' },
-                        ]}
-                      />
-                      <Button size="sm" variant="primary">
-                        + Add chamber
-                      </Button>
-                    </div>
-                  </div>
+                  <PageHeader
+                    title={shellSection === 'devices' ? 'Devices' : 'Dashboard'}
+                    actions={
+                      <>
+                        <SegmentedControl
+                          size="sm"
+                          ariaLabel="Device view"
+                          value={shellView}
+                          onChange={setShellView}
+                          options={[
+                            { value: 'cards', label: 'Cards' },
+                            { value: 'table', label: 'Table' },
+                            { value: 'map', label: 'Map' },
+                          ]}
+                        />
+                        <Button size="sm" variant="primary">
+                          + Add chamber
+                        </Button>
+                      </>
+                    }
+                  />
                 }
               >
                 <div className="space-y-2 p-5">
