@@ -107,9 +107,9 @@ export function DataTable<T>({
     <div className={cn('w-full overflow-x-auto', className)}>
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-line bg-surface-lo">
+          <tr className="border-b border-line bg-canvas">
             {selection && (
-              <th scope="col" className="w-9 px-3 py-2">
+              <th scope="col" className="h-10 w-9 px-3">
                 <Checkbox
                   size="sm"
                   aria-label="Select all rows"
@@ -133,7 +133,8 @@ export function DataTable<T>({
                     isSorted ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined
                   }
                   className={cn(
-                    'px-3 py-2 text-[11px] font-medium tracking-wide text-ink/55 uppercase',
+                    // 40px, measured off the wireframe.
+                    'h-10 px-3 text-[11px] font-medium tracking-wide text-ink/55 uppercase',
                     column.align === 'right' ? 'text-right' : 'text-left',
                   )}
                 >
@@ -187,7 +188,7 @@ export function DataTable<T>({
               // A keyed Fragment, because a row and its disclosure panel are two
               // sibling <tr>s and the shorthand <> cannot carry a key.
               <Fragment key={key}>
-                <tr className="border-b border-line last:border-0">
+                <tr className="border-b border-line-soft last:border-0">
                   {selection && (
                     <td className="px-3">
                       <Checkbox
@@ -240,7 +241,7 @@ export function DataTable<T>({
                 </tr>
 
                 {isOpen && panel != null && (
-                  <tr className="border-b border-line last:border-0">
+                  <tr className="border-b border-line-soft last:border-0">
                     <td colSpan={colSpan} className="bg-surface-hi px-3 py-3">
                       {panel}
                     </td>

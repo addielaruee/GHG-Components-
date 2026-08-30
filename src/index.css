@@ -27,9 +27,15 @@
   --color-ink-hover: #3d3d3d;
   --color-ink-hover-hi: #565656;
 
-  /* Lines */
-  --color-line: #e3e3e6; /* hairline borders and dividers            */
-  --color-line-strong: #d6d6da; /* borders that need to read crisply */
+  /* Lines, in three weights, because the wireframe uses three and one token
+     doing all three jobs got it wrong in both directions: cards read too soft
+     and table rows too heavy.
+       soft    inside an object, separating rows that belong together
+       line    between sections, and around the app's own furniture
+       strong  the outer edge of an object, which is what defines it */
+  --color-line-soft: #f0f0f2; /* wireframe #f2f2f2, table row dividers  */
+  --color-line: #e3e3e6; /* wireframe #dddddd, section dividers          */
+  --color-line-strong: #d6d6da; /* wireframe #d8d8d8, card and field edges */
 
   /* Accent, selected segment, links, focus ring. `-hi` is the gradient top.
      A deep royal blue rather than a bright azure. Bright mid-blues are the

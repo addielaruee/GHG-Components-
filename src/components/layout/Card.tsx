@@ -40,7 +40,7 @@ export function Card({ header, footer, flush, children, className }: CardProps) 
   return (
     <div
       className={cn(
-        'rounded-panel border border-line bg-surface shadow-panel',
+        'rounded-panel border border-line-strong bg-surface shadow-panel',
         className,
       )}
     >
