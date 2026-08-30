@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { DataTable, type Column } from '@/components/data/DataTable'
+import { StatStrip } from '@/components/data/StatStrip'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
 import { Card } from '@/components/layout/Card'
 import { DetailHeader } from '@/components/layout/DetailHeader'
@@ -29,7 +30,7 @@ import {
 } from '@/components/primitives/icons'
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
-import { arrayChambers, standaloneChambers } from '@/mocks/devices'
+import { analyser, arrayChambers, standaloneChambers } from '@/mocks/devices'
 import type { ArrayChamber, StandaloneChamber } from '@/types/device'
 
 /**
@@ -459,6 +460,31 @@ export default function App() {
         </Section>
 
         <Section
+          title="StatStrip"
+          note="The latest record, field by field. Cell count varies from 4 to 12, so it divides the width evenly."
+        >
+          <div className="space-y-5 px-5 py-4">
+            <div>
+              <p className="mb-2 text-[13px] font-semibold">Chamber detail · 12 fields</p>
+              <StatStrip stats={chamberStats} />
+            </div>
+            <div>
+              <p className="mb-2 text-[13px] font-semibold">Analyser detail · gases and position</p>
+              <StatStrip stats={analyserStats} />
+            </div>
+            <div>
+              <p className="mb-2 text-[13px] font-semibold">
+                Inside a device card · small, and a chamber that has gone quiet
+              </p>
+              <div className="w-96 overflow-hidden rounded-panel border border-line">
+                <div className="px-3 py-2 text-[13px] font-semibold">CH-04</div>
+                <StatStrip size="sm" stats={quietStats} />
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section
           title="DataTable"
           note="Column-driven, because it appears five times with different columns. Numbers right-align; nulls sort last."
         >
@@ -871,6 +897,42 @@ export default function App() {
     </div>
   )
 }
+
+/** The full record from the chamber detail page. */
+const ch = standaloneChambers[0].latest!
+const chamberStats = [
+  { label: 'Lid Func', value: ch.lidStatus === 'Close' ? 'closed' : 'open' },
+  { label: 'Fan status', value: ch.fanStatus.toLowerCase() },
+  { label: 'Mode status', value: ch.modeStatus },
+  { label: 'avSD', value: num(ch.avSd, 2) },
+  { label: 'totalSD', value: num(ch.totalSd, 2) },
+  { label: 'UsedSD', value: num(ch.usedSd, 2) },
+  { label: 'CO2_ppm', value: num(ch.co2Ppm, 1) },
+  { label: 'Temp C', value: num(ch.chamberTempC) },
+  { label: 'RH %', value: num(ch.chamberRhPct, 0) },
+  { label: 'Press Pa', value: num(ch.chamberPressurePa, 0) },
+  { label: 'SoilM_Raw', value: num(ch.soilMRaw, 0) },
+  { label: 'SoilT_C', value: num(ch.soilTC) },
+]
+
+const an = analyser.latest!
+const analyserStats = [
+  { label: 'CO₂', value: <>{num(an.co2, 0)} ppm</> },
+  { label: 'CH₄', value: <>{num(an.ch4, 2)} ppm</> },
+  { label: 'N₂O', value: <>{num(an.n2o, 3)} ppm</> },
+  { label: 'NH₃', value: num(an.nh3, 2) },
+  { label: 'Active chamber', value: 'CH-01' },
+  { label: 'Array position', value: '1 of 8' },
+]
+
+/** CH-04 stopped answering, so most of its fields have no current value. */
+const quiet = arrayChambers.find((c) => c.name === 'CH-04')!.latest!
+const quietStats = [
+  { label: 'Temp C', value: num(quiet.chamberTempC) },
+  { label: 'RH %', value: num(quiet.chamberRhPct, 0) },
+  { label: 'SoilM_Raw', value: num(quiet.soilMRaw, 0) },
+  { label: 'UsedSD', value: num(quiet.usedSd, 2) },
+]
 
 /** A reading, or the em dash. Never a zero. */
 function num(value: number | null, digits = 1) {
