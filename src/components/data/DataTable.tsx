@@ -1,7 +1,8 @@
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useCallback, useState } from 'react'
 import { Checkbox } from '@/components/primitives/Checkbox'
 import { ChevronDownIcon } from '@/components/primitives/icons'
 import { cn } from '@/lib/cn'
+import { useTableSort } from '@/lib/useTableSort'
 
 /**
  * DataTable
@@ -25,6 +26,15 @@ import { cn } from '@/lib/cn'
  * **Nulls sort last, in both directions.** A chamber with no reading is not the
  * smallest reading. Sorting ascending by temperature must not park every dead
  * device at the top as though they were cold.
+ *
+ * The inventory lists `ExpandableTableRow` as its own component. It is not one:
+ * a row that opens a panel is a table behaviour, and building it separately
+ * would mean either duplicating row rendering or wrapping this component for no
+ * gain. It lives here as the `expandable` prop, matching the wireframe's
+ * analyser page: the chevron leads the row rather than trailing it, and an open
+ * row is tinted so it stays findable once its panel has pushed the rest of the
+ * table down the screen. What goes *inside* the panel is `InlineChartPanel`,
+ * which is a real separate component.
  */
 
 export interface Column<T> {
@@ -57,8 +67,6 @@ export interface DataTableProps<T> {
   className?: string
 }
 
-type SortState = { key: string; direction: 'asc' | 'desc' } | null
-
 export function DataTable<T>({
   columns,
   rows,
@@ -68,36 +76,12 @@ export function DataTable<T>({
   empty = 'No devices',
   className,
 }: DataTableProps<T>) {
-  const [sort, setSort] = useState<SortState>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
-
-  const sorted = useMemo(() => {
-    if (!sort) return rows
-    const column = columns.find((c) => c.key === sort.key)
-    if (!column?.sortValue) return rows
-
-    const direction = sort.direction === 'asc' ? 1 : -1
-    return [...rows].sort((a, b) => {
-      const left = column.sortValue!(a)
-      const right = column.sortValue!(b)
-      // Missing values sink to the bottom whichever way the column is sorted.
-      if (left === null && right === null) return 0
-      if (left === null) return 1
-      if (right === null) return -1
-      if (typeof left === 'number' && typeof right === 'number') {
-        return (left - right) * direction
-      }
-      return String(left).localeCompare(String(right)) * direction
-    })
-  }, [rows, sort, columns])
-
-  /** Cycles ascending, descending, then back to the rows' natural order. */
-  const toggleSort = (key: string) =>
-    setSort((current) => {
-      if (current?.key !== key) return { key, direction: 'asc' }
-      if (current.direction === 'asc') return { key, direction: 'desc' }
-      return null
-    })
+  const accessorFor = useCallback(
+    (key: string) => columns.find((c) => c.key === key)?.sortValue,
+    [columns],
+  )
+  const { sorted, sort, toggleSort } = useTableSort(rows, accessorFor)
 
   const allKeys = sorted.map(rowKey)
   const selectedCount = selection ? allKeys.filter((k) => selection.selected.has(k)).length : 0
@@ -121,6 +105,8 @@ export function DataTable<T>({
                 />
               </th>
             )}
+
+            {expandable && <th scope="col" className="w-8" />}
 
             {columns.map((column) => {
               const isSorted = sort?.key === column.key
@@ -166,7 +152,6 @@ export function DataTable<T>({
               )
             })}
 
-            {expandable && <th scope="col" className="w-9" />}
           </tr>
         </thead>
 
@@ -188,7 +173,14 @@ export function DataTable<T>({
               // A keyed Fragment, because a row and its disclosure panel are two
               // sibling <tr>s and the shorthand <> cannot carry a key.
               <Fragment key={key}>
-                <tr className="border-b border-line-soft last:border-0">
+                <tr
+                  className={cn(
+                    'border-b border-line-soft last:border-0',
+                    // An open row keeps the tint so it stays findable once its
+                    // panel has pushed everything below it down the screen.
+                    isOpen && 'bg-accent/[0.04]',
+                  )}
+                >
                   {selection && (
                     <td className="px-3">
                       <Checkbox
@@ -205,6 +197,31 @@ export function DataTable<T>({
                     </td>
                   )}
 
+                  {expandable && (
+                    <td className="pl-2">
+                      {panel != null && (
+                        <button
+                          type="button"
+                          aria-expanded={isOpen}
+                          aria-label={isOpen ? 'Collapse row' : 'Expand row'}
+                          onClick={() => setExpanded(isOpen ? null : key)}
+                          className={cn(
+                            'flex cursor-pointer items-center justify-center rounded-[5px] p-0.5',
+                            'text-ink/45 transition-colors duration-150 hover:bg-ink/[0.06] hover:text-ink',
+                            'outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30',
+                          )}
+                        >
+                          <ChevronDownIcon
+                            className={cn(
+                              'size-3.5 transition-transform duration-150',
+                              isOpen && 'rotate-180',
+                            )}
+                          />
+                        </button>
+                      )}
+                    </td>
+                  )}
+
                   {columns.map((column) => (
                     <td
                       key={column.key}
@@ -217,32 +234,11 @@ export function DataTable<T>({
                     </td>
                   ))}
 
-                  {expandable && (
-                    <td className="px-2">
-                      {panel != null && (
-                        <button
-                          type="button"
-                          aria-expanded={isOpen}
-                          aria-label={isOpen ? 'Collapse row' : 'Expand row'}
-                          onClick={() => setExpanded(isOpen ? null : key)}
-                          className={cn(
-                            'flex cursor-pointer items-center justify-center rounded-[5px] p-1',
-                            'text-ink/45 transition-colors duration-150 hover:bg-ink/[0.06] hover:text-ink',
-                            'outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30',
-                          )}
-                        >
-                          <ChevronDownIcon
-                            className={cn('size-4 transition-transform', isOpen && 'rotate-180')}
-                          />
-                        </button>
-                      )}
-                    </td>
-                  )}
                 </tr>
 
                 {isOpen && panel != null && (
                   <tr className="border-b border-line-soft last:border-0">
-                    <td colSpan={colSpan} className="bg-surface-hi px-3 py-3">
+                    <td colSpan={colSpan} className="bg-surface px-3 py-3">
                       {panel}
                     </td>
                   </tr>
