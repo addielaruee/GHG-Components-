@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
+import { DataTable, type Column } from '@/components/data/DataTable'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
 import { Card } from '@/components/layout/Card'
 import { DetailHeader } from '@/components/layout/DetailHeader'
@@ -29,6 +30,7 @@ import {
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
 import { arrayChambers, standaloneChambers } from '@/mocks/devices'
+import type { ArrayChamber, StandaloneChamber } from '@/types/device'
 
 /**
  * Component gallery.
@@ -47,6 +49,7 @@ export default function App() {
   const [shellSection, setShellSection] = useState('devices')
   const [navDemo, setNavDemo] = useState('devices')
   const [crumb, setCrumb] = useState<string | null>(null)
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set(['ch-s21']))
   const [feed, setFeed] = useState('live')
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
@@ -456,6 +459,74 @@ export default function App() {
         </Section>
 
         <Section
+          title="DataTable"
+          note="Column-driven, because it appears five times with different columns. Numbers right-align; nulls sort last."
+        >
+          <div className="space-y-5 px-5 py-4">
+            <div>
+              <p className="mb-2 text-[13px]">
+                <span className="font-semibold">Analyser array · ARR-1</span>{' '}
+                <span className="text-ink/55">
+                  7 chambers · gas is measured by the analyser, not the chamber
+                </span>
+              </p>
+              <div className="rounded-panel border border-line">
+                <DataTable
+                  rows={arrayChambers}
+                  rowKey={(c) => c.id}
+                  columns={ARRAY_COLUMNS}
+                  expandable={(c) =>
+                    c.latest === null ? null : (
+                      <p className="text-[13px] text-ink/70">
+                        {c.name} reports through the analyser at position {c.position}. Lid{' '}
+                        {c.latest.lidFunc}, fan {c.latest.fanStatus.toLowerCase()}.
+                      </p>
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[13px]">
+                <span className="font-semibold">Standalone chambers</span>{' '}
+                <span className="text-ink/55">
+                  {standaloneChambers.length} devices · own sensor and soil probe
+                </span>
+              </p>
+              <div className="rounded-panel border border-line">
+                <DataTable
+                  rows={standaloneChambers}
+                  rowKey={(c) => c.id}
+                  columns={STANDALONE_COLUMNS}
+                  selection={{
+                    selected: picked,
+                    onChange: setPicked,
+                    label: (c) => `Select ${c.name}`,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-gray-400">
+                {picked.size} selected. Sort by CO₂ or flux: CH-S23 and CH-S26 have no value and
+                stay at the bottom either way.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[13px] font-semibold">Empty</p>
+              <div className="rounded-panel border border-line">
+                <DataTable
+                  rows={[] as StandaloneChamber[]}
+                  rowKey={(c) => c.id}
+                  columns={STANDALONE_COLUMNS}
+                  empty="No standalone chambers are running."
+                />
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section
           title="SidebarNav"
           note="Two items, and it should stay that way. Selected row gets an accent rail, taken from the wireframe."
         >
@@ -800,6 +871,61 @@ export default function App() {
     </div>
   )
 }
+
+/** A reading, or the em dash. Never a zero. */
+function num(value: number | null, digits = 1) {
+  return value === null ? <EmptyValue /> : value.toFixed(digits)
+}
+
+const ARRAY_COLUMNS: Column<ArrayChamber>[] = [
+  {
+    key: 'name',
+    header: 'ChamberID',
+    sortValue: (c) => c.name,
+    cell: (c) => (
+      <span className="flex items-center gap-2">
+        <StatusDot status={c.status} label={null} size="sm" />
+        <span className="font-medium">{c.name}</span>
+      </span>
+    ),
+  },
+  { key: 'lid', header: 'Lid', sortValue: (c) => c.latest?.lidStatus ?? null,
+    cell: (c) => (c.latest ? (c.latest.lidStatus === 'Close' ? 'closed' : 'open') : <EmptyValue />) },
+  { key: 'fan', header: 'Fan', sortValue: (c) => c.latest?.fanStatus ?? null,
+    cell: (c) => c.latest?.fanStatus.toLowerCase() ?? <EmptyValue /> },
+  { key: 'temp', header: 'Temp C', align: 'right', sortValue: (c) => c.latest?.chamberTempC ?? null,
+    cell: (c) => num(c.latest?.chamberTempC ?? null) },
+  { key: 'rh', header: 'RH %', align: 'right', sortValue: (c) => c.latest?.chamberRhPct ?? null,
+    cell: (c) => num(c.latest?.chamberRhPct ?? null, 0) },
+  { key: 'soil', header: 'SoilM_Raw', align: 'right', sortValue: (c) => c.latest?.soilMRaw ?? null,
+    cell: (c) => num(c.latest?.soilMRaw ?? null, 0) },
+  { key: 'flux', header: 'CO₂ flux', align: 'right', sortValue: (c) => c.latestFlux?.value ?? null,
+    cell: (c) => num(c.latestFlux?.value ?? null, 2) },
+]
+
+const STANDALONE_COLUMNS: Column<StandaloneChamber>[] = [
+  {
+    key: 'name',
+    header: 'ChamberID',
+    sortValue: (c) => c.name,
+    cell: (c) => (
+      <span className="flex items-center gap-2">
+        <StatusDot status={c.status} label={null} size="sm" />
+        <span className="font-medium">{c.name}</span>
+      </span>
+    ),
+  },
+  { key: 'ip', header: 'IP address', sortValue: (c) => c.ipAddress,
+    cell: (c) => c.ipAddress ?? <EmptyValue reason="Not reachable" /> },
+  { key: 'co2', header: 'CO₂ ppm', align: 'right', sortValue: (c) => c.latest?.co2Ppm ?? null,
+    cell: (c) => num(c.latest?.co2Ppm ?? null, 0) },
+  { key: 'temp', header: 'Temp C', align: 'right', sortValue: (c) => c.latest?.chamberTempC ?? null,
+    cell: (c) => num(c.latest?.chamberTempC ?? null) },
+  { key: 'soilt', header: 'SoilT_C', align: 'right', sortValue: (c) => c.latest?.soilTC ?? null,
+    cell: (c) => num(c.latest?.soilTC ?? null) },
+  { key: 'flux', header: 'CO₂ flux', align: 'right', sortValue: (c) => c.latestFlux?.value ?? null,
+    cell: (c) => num(c.latestFlux?.value ?? null, 2) },
+]
 
 /** The app's two sections. Exactly two, and it should stay that way. */
 const SECTIONS = [
