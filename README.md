@@ -28,6 +28,44 @@ npm run typecheck  # types only
 npm run check:size # 300-line limit on components (also runs in CI)
 ```
 
+## What works, and what is not wired yet
+
+This repo is a **component library, not the application**. Everything is built and reviewed in
+isolation in the gallery (`npm run dev`). That is deliberate, but it means parts of the gallery look
+inert when they are actually fine, so here is the honest split.
+
+### Works, in isolation
+
+Every component in `src/components/` is functional on its own: state changes, keyboard navigation,
+focus rings, ARIA. Specifically worth knowing, because these look passive but are not:
+
+- **SegmentedControl** does change state and move its pill. Nothing visibly happens downstream
+  because the screens it would switch between do not exist yet.
+- **Checkbox** drives a real indeterminate select-all.
+- **Select** opens a real listbox with full keyboard support.
+- **AppShell** scrolls only its content column; sidebar and header hold position.
+
+### Not wired, on purpose
+
+| Thing | Why | Unblocked by |
+|---|---|---|
+| The Cards / Table / Map toggle changes nothing | Those three screens are separate components | Tier 3 (`DataTable`, `DeviceCard`, `AnalyserCard`) and Tier 6 (`MapCanvas`) |
+| No navigation between sections | There is no router, and routing was never specified in the W3 proposal | A team decision, see below |
+| No real data anywhere | No API client and no mock data layer yet | The backend API contract |
+| `DemoSidebar` in `App.tsx` | A gallery stand-in so AppShell can be seen. It is **not** the real component | `SidebarNav`, next in the inventory |
+
+### TODO before this becomes an app
+
+- [ ] **Decide routing.** Nothing in the proposal says how navigation works. React Router is the
+      obvious default, but nobody has picked it and nobody owns it.
+- [ ] **Agree the API contract** with whoever builds the Python backend, so the frontend can be
+      written against a typed mock instead of waiting.
+- [ ] **Build a mock data layer** from the client's real sample files, including the malformed cases:
+      a null-byte row, a missing hour, a device that stops answering.
+- [ ] **Decide who assembles screens** from these components. The Week 8 client deployment needs a
+      running application, not a component set, and that step currently has no owner.
+- [ ] Replace `DemoSidebar` with the real `SidebarNav` once it lands.
+
 ## Layout
 
 ```

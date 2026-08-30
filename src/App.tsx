@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { cn } from '@/lib/cn'
+import { AppShell } from '@/components/layout/AppShell'
 import { Badge } from '@/components/primitives/Badge'
 import { Button } from '@/components/primitives/Button'
 import { Checkbox } from '@/components/primitives/Checkbox'
@@ -34,6 +36,8 @@ export default function App() {
   const [averaging, setAveraging] = useState('30m')
   const [averagingSmall, setAveragingSmall] = useState('30m')
   const [view, setView] = useState('cards')
+  const [shellView, setShellView] = useState('cards')
+  const [shellSection, setShellSection] = useState('devices')
   const [feed, setFeed] = useState('live')
   const [feedPartial, setFeedPartial] = useState('live')
   const [deviceType, setDeviceType] = useState('array')
@@ -441,8 +445,104 @@ export default function App() {
             </div>
           </Row>
         </Section>
+
+        <Section
+          title="AppShell"
+          note="The frame all ten screens sit in. Only the content column scrolls; the sidebar and header stay put."
+        >
+          <div className="px-5 py-4">
+            {/* `bounded` so the shell fills this preview box rather than the
+                viewport. The real app uses the default. */}
+            <div className="h-96 overflow-hidden rounded-lg border border-line">
+              <AppShell
+                bounded
+                sidebar={<DemoSidebar value={shellSection} onChange={setShellSection} />}
+                header={
+                  <div className="flex items-center justify-between px-5 py-2.5">
+                    <h3 className="text-base font-semibold tracking-[-0.01em]">
+                      {shellSection === 'devices' ? 'Devices' : 'Dashboard'}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <SegmentedControl
+                        size="sm"
+                        ariaLabel="Device view"
+                        value={shellView}
+                        onChange={setShellView}
+                        options={[
+                          { value: 'cards', label: 'Cards' },
+                          { value: 'table', label: 'Table' },
+                          { value: 'map', label: 'Map' },
+                        ]}
+                      />
+                      <Button size="sm" variant="primary">
+                        + Add chamber
+                      </Button>
+                    </div>
+                  </div>
+                }
+              >
+                <div className="space-y-2 p-5">
+                  <p className="text-xs text-gray-400">
+                    Showing <span className="font-medium text-ink">{shellSection}</span> /{' '}
+                    <span className="font-medium text-ink">{shellView}</span>. Scroll this column;
+                    the sidebar and header hold their position. The real screens that render per
+                    view are Tier 3 and do not exist yet.
+                  </p>
+                  {Array.from({ length: 14 }, (_, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm"
+                    >
+                      <StatusDot status={i === 3 ? 'warn' : 'ok'} label={null} />
+                      <span className="font-medium">CH-S{21 + i}</span>
+                      <span className="text-gray-500">
+                        {i === 3 ? '· unreachable since 09:14' : '· standalone · last row 2 min ago'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </AppShell>
+            </div>
+          </div>
+        </Section>
       </main>
     </div>
+  )
+}
+
+/**
+ * Stand-in for SidebarNav, which is the next component in the inventory. Kept
+ * here rather than in the library so it does not become a second source of
+ * truth for the real navigation.
+ */
+function DemoSidebar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const items = [
+    { id: 'dashboards', label: 'Dashboards' },
+    { id: 'devices', label: 'Devices' },
+  ]
+  return (
+    <>
+      <div className="px-4 py-3.5 text-[13px] font-semibold tracking-[-0.01em]">GHG Monitor</div>
+      <nav aria-label="Sections" className="px-2">
+        {items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            aria-current={value === item.id ? 'page' : undefined}
+            onClick={() => onChange(item.id)}
+            className={cn(
+              'mb-0.5 block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-[13px]',
+              'outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30',
+              value === item.id
+                ? 'bg-ink/10 font-medium text-ink'
+                : 'text-ink/65 hover:bg-ink/[0.05] hover:text-ink',
+            )}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    </>
   )
 }
 

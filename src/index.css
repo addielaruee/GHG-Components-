@@ -118,6 +118,10 @@
   --spacing-control-sm: 1.75rem; /* 28px */
   --spacing-control-md: 2.125rem; /* 34px */
 
+  /* The sidebar's width, measured off the wireframe. Named because AppShell,
+     and anything that has to align to the content column, both need it. */
+  --spacing-sidebar: 12.25rem; /* 196px */
+
   /* Radii. Controls sit at 8px — rounder than the wireframe's 6px, which is
      what reads as "considered" rather than "default". */
   --radius-control: 8px;
