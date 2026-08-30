@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Design tokens taken from the P24 wireframe.
+   Tailwind v4 is configured in CSS — there is no tailwind.config.js. */
+@theme {
+  /* Status colours. Used by StatusDot and the map pins. */
+  --color-status-ok: #22c55e;      /* green  — device reporting normally   */
+  --color-status-warn: #f59e0b;    /* amber  — quiet or unreachable        */
+  --color-status-error: #ef4444;   /* red    — faulted                     */
+  --color-status-unknown: #9ca3af; /* grey   — never seen                  */
+
+  /* Chart series palette. Order matters: chambers are assigned colours
+     from this list in sequence, and the choice is remembered per device. */
+  --color-series-1: #2563eb;
+  --color-series-2: #f59e0b;
+  --color-series-3: #22c55e;
+  --color-series-4: #8b5cf6;
+  --color-series-5: #ef4444;
+  --color-series-6: #14b8a6;
+  --color-series-7: #ec4899;
+  --color-series-8: #64748b;
+}
