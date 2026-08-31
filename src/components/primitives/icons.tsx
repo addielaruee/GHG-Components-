@@ -143,3 +143,24 @@ export function ArrowRightIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+/** Reset filters. A circle broken at the top with an arrowhead, drawn open so
+ *  it reads as "back to the start" rather than "loading". */
+export function ResetIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M13.5 8a5.5 5.5 0 1 1-1.7-3.97" />
+      <path d="M13.2 2.4v2.6h-2.6" />
+    </svg>
+  )
+}
+
+/** The Analyser nav section. A trace with one tall peak: the instrument's own
+ *  signal, and distinct at 16px from the chamber crosshair. */
+export function AnalyserIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M1.5 9.5h2.2L6 4l2.4 8L10.6 9.5h3.9" />
+    </svg>
+  )
+}

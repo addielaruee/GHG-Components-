@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { cn } from '@/lib/cn'
 import {
   combinedExtent,
+  dashArrays,
   linear,
   linePath,
   niceTicks,
@@ -81,7 +82,13 @@ export interface TimeSeriesChartProps {
   /** Labels under the plot. Three reads best: start, middle, end. */
   xLabels?: React.ReactNode[]
   formatY?: (value: number) => string
-  /** Drawn inside the plot: dead bands, fitted lines, markers. */
+  /**
+   * Drawn under the gridlines: shaded intervals. A band belongs beneath them,
+   * because a band that hides the grid changes what the chart is measured
+   * against. See `valveBands`.
+   */
+  underlay?: (helpers: PlotHelpers) => React.ReactNode
+  /** Drawn over the gridlines, under the lines: fitted lines, markers. */
   overlay?: (helpers: PlotHelpers) => React.ReactNode
   /** Announced to screen readers in place of the drawing. */
   ariaLabel?: string
@@ -94,8 +101,6 @@ export interface PlotHelpers {
   y: (v: number) => number
   plot: { left: number; top: number; width: number; height: number }
 }
-
-const dashArrays = { solid: undefined, dashed: '5 4', dotted: '1.5 3' } as const
 
 /** Room for the x labels beneath, and a little air at the top and right. */
 const PAD = { right: 4, top: 6, bottom: 18 }
@@ -111,6 +116,7 @@ export function TimeSeriesChart({
   ticks: fixedTicks,
   xLabels,
   formatY = (v) => String(v),
+  underlay,
   overlay,
   ariaLabel,
   className,
@@ -157,6 +163,8 @@ export function TimeSeriesChart({
             height={plot.height}
             fill="var(--color-surface-hi)"
           />
+
+          {underlay?.({ x, y, plot })}
 
           {ticks.map((tick) => (
             <g key={tick}>

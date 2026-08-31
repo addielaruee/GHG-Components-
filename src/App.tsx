@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
 import { ChartCard } from '@/components/charts/ChartCard'
+import { InlineChartPanel } from '@/components/charts/InlineChartPanel'
+import { valveBands } from '@/components/charts/valveBands'
+import { Modal } from '@/components/overlays/Modal'
+import { Popover } from '@/components/overlays/Popover'
+import { RangeToolbar } from '@/components/layout/RangeToolbar'
+import { MPVPositionRow } from '@/components/primitives/MPVPositionRow'
 import { MultiSeriesChart } from '@/components/charts/MultiSeriesChart'
 import { StackedChannelChart } from '@/components/charts/StackedChannelChart'
 import { TimeSeriesChart } from '@/components/charts/TimeSeriesChart'
@@ -46,7 +52,8 @@ import {
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
 import { analyser, arrayChambers, standaloneChambers } from '@/mocks/devices'
-import { analyserCycle, closureTrace, environment24h, fluxPerClosure } from '@/mocks/series'
+import { equalTicks, niceDomain } from '@/lib/scale'
+import { analyser24h, analyserCycle, closureTrace, environment24h, fluxPerClosure } from '@/mocks/series'
 import { assignSeriesStyles } from '@/lib/seriesPalette'
 import type { ArrayChamber, StandaloneChamber } from '@/types/device'
 
@@ -69,6 +76,9 @@ export default function App() {
   const [crumb, setCrumb] = useState<string | null>(null)
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set(['ch-s21']))
   const [page, setPage] = useState(1)
+  const [mpv, setMpv] = useState<number | null>(1)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const [stacked, setStacked] = useState<ReadonlySet<string>>(
     new Set(['Chamber_Temp_C', 'Chamber_RH_%', 'Chamber_Pressure_Pa']),
   )
@@ -760,6 +770,201 @@ export default function App() {
         </Section>
 
         <Section
+          title="RangeToolbar · MPVPositionRow"
+          note="The strip that replaced the Live/History toggle and the averaging presets, on all four data screens."
+        >
+          <Row label="the analyser's toolbar">
+            <div className="w-full max-w-3xl overflow-visible rounded-panel border border-line-strong bg-surface">
+              <RangeToolbar
+                className="border-b-0"
+                leading={
+                  <MPVPositionRow
+                    positions={[1, 2, 3, 4, 5, 6, 7, 8]}
+                    value={mpv}
+                    onChange={setMpv}
+                    unavailable={new Set([5])}
+                  />
+                }
+                picker={
+                  <Button size="sm">
+                    Last 24 h <ChevronDownIcon />
+                  </Button>
+                }
+                window="20 Aug 15:00 - 21 Aug 15:00"
+                onReset={() => setMpv(1)}
+              />
+            </div>
+          </Row>
+          <Row label="a chamber page: no position row">
+            <div className="w-full max-w-3xl rounded-panel border border-line-strong bg-surface">
+              <RangeToolbar
+                className="border-b-0"
+                picker={
+                  <Button size="sm">
+                    Last 24 h <ChevronDownIcon />
+                  </Button>
+                }
+                window="20 Aug 15:00 - 21 Aug 15:00"
+                onReset={() => {}}
+              />
+            </div>
+          </Row>
+          <p className="px-5 pb-3 text-xs text-gray-400">
+            Position 5 is disabled, which is the case the array sample actually has: the client's own
+            array skips it. The picker slot holds a plain Button until RangePicker exists, which
+            waits on the client confirming what the retention really is.
+          </p>
+        </Section>
+
+        <Section
+          title="valveBands"
+          note="The analyser samples one chamber at a time. Between the bands the line is interpolated, not measured."
+        >
+          <Row label="CO2 and CO2_dry, position 1">
+            <div className="w-full max-w-3xl">
+              <ChartCard
+                title="CO2"
+                source="analyser"
+                unit="ppm"
+                meta={[`position ${mpv ?? 1} only`]}
+                legend={[
+                  { id: 'wet', label: 'CO2', colour: 'var(--color-series-1)' },
+                  { id: 'dry', label: 'CO2_dry', colour: 'var(--color-series-1)', dash: 'dashed' },
+                ]}
+                stats={ANALYSER_STATS}
+              >
+                <TimeSeriesChart
+                  height={150}
+                  series={[
+                    { id: 'co2', points: ANALYSER.co2, colour: 'var(--color-series-1)' },
+                    {
+                      id: 'co2dry',
+                      points: ANALYSER.co2Dry,
+                      colour: 'var(--color-series-1)',
+                      dash: 'dashed',
+                    },
+                  ]}
+                  domain={ANALYSER_DOMAIN}
+                  ticks={equalTicks(ANALYSER_DOMAIN)}
+                  underlay={valveBands(ANALYSER.intervals)}
+                  xLabels={['15:00', '21:00', '03:00', '09:00', '15:00']}
+                  formatY={(v) => v.toFixed(0)}
+                />
+              </ChartCard>
+              <p className="mt-1 text-xs text-gray-400">
+                Bands sit under the gridlines, via the new underlay prop. A band that hid the grid
+                would change what the chart is measured against.
+              </p>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="InlineChartPanel"
+          note="A chart inside an expanded table row. No card of its own: the row already has one."
+        >
+          <Row label="expanded array-chamber row">
+            <div className="w-full max-w-3xl rounded-panel border border-line-strong bg-surface">
+              <InlineChartPanel
+                title="Chamber_Temp_C"
+                unit="°C"
+                meta={['last 180 s']}
+                stats={TRACE_STATS}
+                action={
+                  <Button variant="primary" size="sm">
+                    Export raw data (CSV)
+                  </Button>
+                }
+                footer="Chamber_RH_%, Chamber_Pressure_Pa, SoilM_Raw, avSD and the rest of the channels plot full size on the chamber page."
+                footerAction={<TextLink size="sm">Open CH-01 chamber page →</TextLink>}
+              >
+                <TimeSeriesChart
+                  height={110}
+                  series={[{ id: 'temp', points: TRACE_180, colour: 'var(--color-ink)' }]}
+                  ticks={equalTicks(TRACE_DOMAIN, 2)}
+                  domain={TRACE_DOMAIN}
+                  xLabels={['−180 s', '−90 s', 'now']}
+                  formatY={(v) => v.toFixed(1)}
+                />
+              </InlineChartPanel>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="Modal · Popover"
+          note="Modal is the native dialog element, so the focus trap and Escape are the browser's."
+        >
+          <Row label="modal">
+            <div>
+              <Button variant="primary" onClick={() => setModalOpen(true)}>
+                Add standalone chamber
+              </Button>
+              <Modal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title="Add standalone chamber"
+                description="Only standalone chambers can be added. Array chambers are reached through the analyser."
+                footer={
+                  <>
+                    <Button onClick={() => setModalOpen(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={() => setModalOpen(false)}>
+                      Add chamber
+                    </Button>
+                  </>
+                }
+              >
+                <div className="flex flex-col gap-3">
+                  <TextInput label="ChamberID" defaultValue="CH-S29" />
+                  <TextInput label="IP address" placeholder="192.168.1.___" />
+                </div>
+              </Modal>
+              <p className="mt-1 text-xs text-gray-400">
+                Tab is trapped, Escape closes, the page behind goes inert. All of that is the
+                browser, not us.
+              </p>
+            </div>
+          </Row>
+          <Row label="popover">
+            <div className="relative">
+              <Button onClick={() => setPopoverOpen((v) => !v)}>Line colour · CH-01</Button>
+              <Popover
+                open={popoverOpen}
+                onClose={() => setPopoverOpen(false)}
+                title="Line colour · CH-01"
+                width={240}
+                footer={
+                  <>
+                    <Button size="sm" onClick={() => setPopoverOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={() => setPopoverOpen(false)}>
+                      Apply
+                    </Button>
+                  </>
+                }
+              >
+                <div className="flex flex-wrap gap-1.5">
+                  {SWATCHES.map((colour) => (
+                    <span
+                      key={colour}
+                      style={{ background: colour }}
+                      className="size-6 rounded-control border border-ink/10"
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-ink/55">
+                  Applies to this tile only. Colours are remembered per device across dashboards.
+                </p>
+              </Popover>
+              <p className="mt-1 text-xs text-gray-400">
+                Closes on Escape and on a click outside. Not modal: the page behind stays live.
+              </p>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
           title="DeviceCard · AnalyserCard"
           note="The card view. CollapsedDeviceRow is this card closed, not a separate component."
         >
@@ -1400,6 +1605,36 @@ export default function App() {
 }
 
 const CYCLE = analyserCycle()
+const ANALYSER = analyser24h(1)
+const ANALYSER_DOMAIN: [number, number] = [405, 485]
+const ANALYSER_STATS = (() => {
+  const values = ANALYSER.co2.map((p) => p.v).filter((v): v is number => v !== null)
+  const mean = values.reduce((sum, v) => sum + v, 0) / values.length
+  return [
+    { label: '24 h mean', value: `${mean.toFixed(1)} ppm` },
+    { label: 'range', value: `${Math.min(...values).toFixed(0)}-${Math.max(...values).toFixed(0)}` },
+  ]
+})()
+/** 180 s of chamber temperature, wandering rather than climbing. */
+const TRACE_180 = (() => {
+  const end = new Date('2026-08-30T15:02:00Z').getTime()
+  let state = 29
+  const rand = () => ((state = (state * 1664525 + 1013904223) % 4294967296), state / 4294967296)
+  return Array.from({ length: 46 }, (_, i) => ({
+    t: end - (45 - i) * 4000,
+    v: 15.0 + Math.sin(i / 6) * 0.12 + (rand() - 0.5) * 0.08,
+  }))
+})()
+const TRACE_DOMAIN = niceDomain(
+  Math.min(...TRACE_180.map((p) => p.v)),
+  Math.max(...TRACE_180.map((p) => p.v)),
+).domain
+/** Read off the same array the line is drawn from, so they cannot disagree. */
+const TRACE_STATS = [
+  `now ${TRACE_180[TRACE_180.length - 1].v.toFixed(1)} °C`,
+  `range ${Math.min(...TRACE_180.map((p) => p.v)).toFixed(1)}-${Math.max(...TRACE_180.map((p) => p.v)).toFixed(1)}`,
+]
+const SWATCHES = Array.from({ length: 8 }, (_, i) => `var(--color-series-${i + 1})`)
 const CLOSURE = closureTrace()
 const ENV = environment24h()
 const FLUX = fluxPerClosure()
@@ -1683,6 +1918,10 @@ const SECTION_INDEX = [
   'MultiSeriesChart',
   'StackedChannelChart',
   'ChartCard',
+  'RangeToolbar · MPVPositionRow',
+  'valveBands',
+  'InlineChartPanel',
+  'Modal · Popover',
   'DeviceCard · AnalyserCard',
   'ShowMoreRow',
   'ChannelChipRow',

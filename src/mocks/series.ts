@@ -128,3 +128,49 @@ export function fluxPerClosure(seed = 5): Point[] {
     return { t, v: failedFit ? null : 3.6 + Math.sin(i / 2.2) * 1.1 + (random() - 0.5) * 0.5 }
   })
 }
+
+/**
+ * The analyser filtered to one valve position, as screen 3b draws it: four gas
+ * channels over 24 hours, plus the intervals when the valve was actually there.
+ *
+ * The intervals are the point. The analyser samples one chamber at a time, so a
+ * chart filtered to position 1 holds real readings only inside them; between
+ * them the line is interpolated. Roughly 16 cycles a day means roughly 13
+ * visits inside a 24 h window, each about 10 minutes long.
+ */
+export function analyser24h(position = 1, seed = 13) {
+  const random = seeded(seed + position)
+  const end = new Date('2026-08-30T15:00:00Z').getTime()
+  const step = 5 * MINUTE
+  const count = (24 * 60) / 5
+
+  const co2: Point[] = []
+  const co2Dry: Point[] = []
+  const ch4: Point[] = []
+  const ch4Dry: Point[] = []
+
+  for (let i = 0; i < count; i += 1) {
+    const t = end - (count - i) * step
+    const drift = Math.sin((i / count) * Math.PI * 2 - Math.PI / 2)
+    const wobble = Math.sin(i / 7) * 6
+    const base = 445 + drift * 18 + wobble + (random() - 0.5) * 9
+    co2.push({ t, v: base })
+    // The dry mole fraction runs a few ppm above the wet one, and the wireframe
+    // tells them apart by line style rather than by colour.
+    co2Dry.push({ t, v: base + 3.4 + (random() - 0.5) * 4 })
+
+    const methane = 2.2 + drift * 0.12 + Math.sin(i / 5) * 0.09 + (random() - 0.5) * 0.05
+    ch4.push({ t, v: methane })
+    ch4Dry.push({ t, v: methane + 0.02 + (random() - 0.5) * 0.03 })
+  }
+
+  const visitEvery = 105 * MINUTE
+  const dwell = 10 * MINUTE
+  const first = end - 24 * 60 * MINUTE
+  const intervals: Array<{ from: number; to: number }> = []
+  for (let t = first + 20 * MINUTE; t < end; t += visitEvery) {
+    intervals.push({ from: t, to: t + dwell })
+  }
+
+  return { co2, co2Dry, ch4, ch4Dry, intervals, window: [first, end] as [number, number] }
+}

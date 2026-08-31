@@ -101,6 +101,36 @@ export function niceDomain(min: number, max: number): { domain: [number, number]
   }
 }
 
+/**
+ * A domain cut into equal intervals, labelled at every cut.
+ *
+ * This is the 31 Aug wireframe's axis rule, and it is deliberately *not*
+ * `niceTicks`. The values it returns are not round: `Chamber_RH_%` over a 60-80
+ * domain gives 60, 63.33, 66.67, 70, 73.33, 76.67, 80. They become round when
+ * printed, because the label formatter takes its decimals from the domain's
+ * span, and the file's own axis reads 60, 63, 67, 70, 73, 77, 80.
+ *
+ * Checked against every chart in the wireframe. Paired with `decimalsFor` on
+ * the domain span it reproduces all of them exactly, pressure included:
+ * 96 160, 96 203, 96 247, 96 290, 96 333, 96 377, 96 420.
+ *
+ * The trade is that a gridline no longer sits on a number worth reading, which
+ * is what `niceTicks` exists for. Labelling every cut is what buys it back:
+ * nothing has to be estimated between lines. Use this when a caller has already
+ * chosen the bounds, `niceTicks` when the chart is choosing them itself.
+ */
+export function equalTicks(domain: [number, number], intervals = 6): number[] {
+  const [lo, hi] = domain
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return []
+  if (lo === hi) return [lo]
+
+  const count = Math.max(1, Math.floor(intervals))
+  const step = (hi - lo) / count
+  // toPrecision kills the floating dust that turns 96 246.666666666664 into a
+  // label one pixel off its gridline.
+  return Array.from({ length: count + 1 }, (_, i) => Number((lo + i * step).toPrecision(12)))
+}
+
 /** Maps a domain value onto a pixel range. */
 export function linear([d0, d1]: [number, number], [r0, r1]: [number, number]) {
   const span = d1 - d0 || 1
@@ -167,3 +197,17 @@ export function linePath(
   }
   return d
 }
+
+/**
+ * SVG dash patterns, one per line style.
+ *
+ * Here rather than in the chart because a legend swatch has to be drawn with
+ * exactly the pattern its line is drawn with. Two copies of `'5 4'` is how a
+ * legend ends up showing a dash the chart renders as a dot.
+ */
+export const dashArrays: Record<import('@/lib/seriesPalette').SeriesDash, string | undefined> = {
+  solid: undefined,
+  dashed: '5 4',
+  dotted: '1.5 3',
+}
+

@@ -78,16 +78,6 @@
   --color-status-warn-deep: #74581f;
   --color-status-error-deep: #77392c;
 
-  /* Chart series palette. Order matters: chambers take colours from this
-     list in sequence, and the choice is remembered per device. */
-  --color-series-1: #2563eb;
-  --color-series-2: #f59e0b;
-  --color-series-3: #22c55e;
-  --color-series-4: #8b5cf6;
-  --color-series-5: #ef4444;
-  --color-series-6: #14b8a6;
-  --color-series-7: #ec4899;
-  --color-series-8: #64748b;
 
   /* Elevation. Each pairs a soft drop shadow with an inset hairline along the
      top edge, that highlight is what makes a control look lit rather than
@@ -99,7 +89,18 @@
   --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -4px rgb(0 0 0 / 0.06);
   /* A recessed well, used by the segmented control's track so the selected
      pill reads as sitting on top of it rather than punched into it. */
+  /* Shaded intervals inside a plot: the valve open on this position, the dead
+     band at the start of a closure. Barely there on purpose, because it sits
+     under a line that has to stay the thing you look at. */
+  --color-band: #eef3fa;
+  --color-band-muted: #f2f2f4;
+
   --shadow-track: inset 0 1px 2px rgb(0 0 0 / 0.045);
+
+  /* Something floating above the page: a dialog, a popover. Longer and deeper
+     than shadow-panel, because a card sits on the page while these sit over it,
+     and the gap between those two readings is carried entirely by the shadow. */
+  --shadow-overlay: 0 2px 4px rgb(0 0 0 / 0.06), 0 12px 32px -8px rgb(0 0 0 / 0.18);
   /* Elevation for an accent-filled surface. The shadow carries the hue rather
      than being neutral grey, a grey shadow under a coloured control is one of
      the clearest tells of unconsidered UI. */
@@ -133,6 +134,57 @@
      "considered" rather than "default". */
   --radius-control: 8px;
   --radius-panel: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+   The series palette lives in its own `static` block, and that keyword is
+   load-bearing.
+
+   Tailwind v4 emits a theme variable only when it finds the variable's name as
+   literal text in a scanned file. Every other token here is reached through a
+   utility class, so it is found. These are not: `seriesPalette.ts` builds them
+   as `var(--color-series-${n})`, and the name never exists as text anywhere.
+
+   Without `static`, Tailwind dropped --color-series-4, -6, -7 and -8. An SVG
+   stroke that resolves to nothing is not a fallback colour, it is `none`, so
+   the fourth chamber onward drew no line at all: an invisible failure on a
+   chart whose entire purpose is comparing chambers.
+
+   Do not fold these back into the block above.
+--------------------------------------------------------------------------- */
+@theme static {
+  /* Chart series palette. Order matters: chambers take colours from this
+     list in sequence, and the choice is remembered per device. */
+  /* Device type. A taxonomy, not a health state: which source a number came
+     from, so a graph is never read against the wrong one. The 31 Aug wireframe
+     draws these as a card's left edge and a matching badge.
+
+     Sampled from the wireframe (#2a78d6, #1e857c, #ec3013) and then pulled
+     toward the library's matte register, as the status palette was. The red is
+     the one that moved most: the wireframe's #ec3013 is an alarm colour, and
+     this one has to sit calmly beside a chart that is working fine.
+
+     ⚠️ Analyser red and `status-error` brick are close in hue. They mean
+     completely different things, and a red left edge on a healthy analyser
+     chart is a real misreading risk. Recorded in COMPONENT_INVENTORY.md as
+     something for the team to decide, not something to quietly re-colour. */
+  --color-device-analyser: #cc4a2e;
+  --color-device-array: #2a78d6;
+  --color-device-standalone: #1e857c;
+
+  /* Deep variants, for badge text on a tinted fill. Same job as status-*-deep. */
+  --color-device-analyser-deep: #8d3520;
+  --color-device-array-deep: #1a5395;
+  --color-device-standalone-deep: #14605a;
+
+  --color-series-1: #2563eb;
+  --color-series-2: #f59e0b;
+  --color-series-3: #22c55e;
+  --color-series-4: #8b5cf6;
+  --color-series-5: #ef4444;
+  --color-series-6: #14b8a6;
+  --color-series-7: #ec4899;
+  --color-series-8: #64748b;
 }
 
 @keyframes status-pulse {

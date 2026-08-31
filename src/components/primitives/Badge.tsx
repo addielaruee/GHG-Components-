@@ -19,7 +19,17 @@ import { cn } from '@/lib/cn'
  * className overrides the first time a screen needs a red one.
  */
 
-export type BadgeTone = 'neutral' | 'ok' | 'warn' | 'error'
+/** Health. These are the tones that can carry a status bead. */
+export type StatusTone = 'neutral' | 'ok' | 'warn' | 'error'
+
+/**
+ * Which source a number came from. A taxonomy, not a health state, which is why
+ * these carry no bead: a green dot beside `STANDALONE` would claim the chamber
+ * is reporting, and the tag says nothing of the sort.
+ */
+export type DeviceTone = 'analyser' | 'array' | 'standalone'
+
+export type BadgeTone = StatusTone | DeviceTone
 
 export interface BadgeProps {
   /** Defaults to `neutral`, which is every badge the wireframe actually shows. */
@@ -31,6 +41,8 @@ export interface BadgeProps {
    * Show a status bead before the label. Worth using on the coloured tones: it
    * gives the badge a second, non-colour signal, which matters because
    * red-green colour blindness makes `ok` and `error` hard to separate.
+   *
+   * Ignored on the device tones, which describe a source rather than a state.
    */
   dot?: boolean
   children: React.ReactNode
@@ -47,7 +59,7 @@ export interface BadgeProps {
  * is loud, but a flat tint with no edge is exactly what makes a badge look
  * unfinished beside controls that have a surface.
  */
-const tones: Record<BadgeTone, { soft: string; outline: string; dot: Status }> = {
+const tones: Record<BadgeTone, { soft: string; outline: string; dot?: Status }> = {
   neutral: {
     soft: 'border-ink/12 bg-linear-to-b from-ink/[0.035] to-ink/[0.085] text-ink',
     outline: 'border-line-strong text-ink/70',
@@ -67,6 +79,21 @@ const tones: Record<BadgeTone, { soft: string; outline: string; dot: Status }> =
     soft: 'border-status-error/30 bg-linear-to-b from-status-error/8 to-status-error/16 text-status-error-deep',
     outline: 'border-status-error/40 text-status-error-deep',
     dot: 'error',
+  },
+
+  // Device type. Same recipe as above, so a type tag and a status tag sitting
+  // together read as one family rather than two.
+  analyser: {
+    soft: 'border-device-analyser/25 bg-linear-to-b from-device-analyser/8 to-device-analyser/14 text-device-analyser-deep',
+    outline: 'border-device-analyser/40 text-device-analyser-deep',
+  },
+  array: {
+    soft: 'border-device-array/25 bg-linear-to-b from-device-array/8 to-device-array/14 text-device-array-deep',
+    outline: 'border-device-array/40 text-device-array-deep',
+  },
+  standalone: {
+    soft: 'border-device-standalone/25 bg-linear-to-b from-device-standalone/8 to-device-standalone/14 text-device-standalone-deep',
+    outline: 'border-device-standalone/40 text-device-standalone-deep',
   },
 }
 
@@ -101,7 +128,7 @@ export function Badge({
       )}
     >
       {/* Decorative: the badge's own text already names the state. */}
-      {dot && <StatusDot status={style.dot} size="sm" label={null} />}
+      {dot && style.dot && <StatusDot status={style.dot} size="sm" label={null} />}
       {children}
     </span>
   )
