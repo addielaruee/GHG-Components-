@@ -25,6 +25,18 @@ export interface SeriesStyle {
 const COLOURS = Array.from({ length: 8 }, (_, i) => `var(--color-series-${i + 1})`)
 
 /**
+ * The nth palette colour, wrapping.
+ *
+ * For anything coloured by position that is *not* a device: the channels in a
+ * stacked chart are separate quantities, not separate chambers, so they take
+ * their colour from here rather than through `assignSeriesStyles`, whose whole
+ * contract is that a colour belongs to a device.
+ */
+export function paletteColour(index: number): string {
+  return COLOURS[((index % COLOURS.length) + COLOURS.length) % COLOURS.length]
+}
+
+/**
  * Dash is the second channel, not decoration. Four chambers on one axis have to
  * be told apart in greyscale, by a colour-blind reader, and in a printed report,
  * which is a real output for this project.

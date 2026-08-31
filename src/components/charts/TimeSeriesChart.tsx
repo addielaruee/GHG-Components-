@@ -1,5 +1,14 @@
+import { useId } from 'react'
 import { cn } from '@/lib/cn'
-import { combinedExtent, linear, niceTicks, segments, type ChartPoint } from '@/lib/scale'
+import {
+  combinedExtent,
+  linear,
+  linePath,
+  niceTicks,
+  segments,
+  type ChartPoint,
+  type SeriesShape,
+} from '@/lib/scale'
 import { useElementWidth } from '@/lib/useElementWidth'
 
 /**
@@ -22,6 +31,13 @@ import { useElementWidth } from '@/lib/useElementWidth'
  *
  * Sized by measurement rather than a scaling viewBox, so labels stay at their
  * intended size and strokes stay even. See `useElementWidth`.
+ *
+ * **The x domain can be forced.** Left alone a chart fits its own data, which is
+ * right on its own and wrong in a stack: two panels covering different spans
+ * would look aligned while showing different hours, and reading straight down is
+ * the entire point of stacking them. `StackedChannelChart` passes one domain to
+ * every panel. Anything falling outside a forced domain is clipped rather than
+ * drawn over the labels.
  */
 
 export interface ChartSeries {
@@ -30,6 +46,11 @@ export interface ChartSeries {
   /** A CSS colour. Use the `--color-series-*` tokens. */
   colour: string
   dash?: 'solid' | 'dashed' | 'dotted'
+  /**
+   * `step` holds a value until the next reading, for a valve position or a lid
+   * state. Defaults to `line`. See `SeriesShape`.
+   */
+  shape?: SeriesShape
   label?: string
 }
 
@@ -38,6 +59,25 @@ export interface TimeSeriesChartProps {
   height?: number
   /** Force a y domain. Defaults to the data's own extent. */
   domain?: [number, number]
+  /**
+   * Force the time domain. Defaults to the data's own span. Pass this whenever
+   * more than one chart is meant to be read against the same clock.
+   */
+  xDomain?: [number, number]
+  /**
+   * Width of the gutter the y labels sit in. Stacked panels pass a single value
+   * worked out from the widest label across all of them, so their plots line up
+   * and a five-digit pressure does not shunt one panel out of step.
+   */
+  yAxisWidth?: number
+  /** Gridlines to aim for. A panel in a stack wants 2, a chart on its own 3. */
+  tickCount?: number
+  /**
+   * Exact gridline values, overriding `tickCount`. For a caller that has
+   * already decided where the lines go, which `StackedChannelChart` has:
+   * its panels are labelled at their bounds, not at ticks chosen inside them.
+   */
+  ticks?: number[]
   /** Labels under the plot. Three reads best: start, middle, end. */
   xLabels?: React.ReactNode[]
   formatY?: (value: number) => string
@@ -57,13 +97,18 @@ export interface PlotHelpers {
 
 const dashArrays = { solid: undefined, dashed: '5 4', dotted: '1.5 3' } as const
 
-/** Room for the y labels on the left and the x labels beneath. */
-const PAD = { left: 30, right: 4, top: 6, bottom: 18 }
+/** Room for the x labels beneath, and a little air at the top and right. */
+const PAD = { right: 4, top: 6, bottom: 18 }
+const DEFAULT_Y_AXIS_WIDTH = 30
 
 export function TimeSeriesChart({
   series,
   height = 120,
   domain,
+  xDomain,
+  yAxisWidth = DEFAULT_Y_AXIS_WIDTH,
+  tickCount = 3,
+  ticks: fixedTicks,
   xLabels,
   formatY = (v) => String(v),
   overlay,
@@ -71,28 +116,29 @@ export function TimeSeriesChart({
   className,
 }: TimeSeriesChartProps) {
   const { ref, width } = useElementWidth<HTMLDivElement>()
+  // Two charts on one screen must not share a clip path.
+  const clipId = useId()
 
-  const allPoints = series.flatMap((s) => s.points)
+  const times = series.flatMap((s) => s.points).map((p) => p.t)
   const yExtent = domain ?? combinedExtent(series.map((s) => s.points))
-  const xExtent = allPoints.length
-    ? ([Math.min(...allPoints.map((p) => p.t)), Math.max(...allPoints.map((p) => p.t))] as const)
-    : null
+  const xExtent: [number, number] | null =
+    xDomain ?? (times.length ? [Math.min(...times), Math.max(...times)] : null)
 
   const plot = {
-    left: PAD.left,
+    left: yAxisWidth,
     top: PAD.top,
-    width: Math.max(0, width - PAD.left - PAD.right),
+    width: Math.max(0, width - yAxisWidth - PAD.right),
     height: Math.max(0, height - PAD.top - PAD.bottom),
   }
 
   const ready = width > 0 && yExtent !== null && xExtent !== null
-  const ticks = ready ? niceTicks(yExtent[0], yExtent[1], 3) : []
+  const ticks = !ready ? [] : (fixedTicks ?? niceTicks(yExtent[0], yExtent[1], tickCount))
   // Pad the domain to the ticks so the top gridline is not clipped.
   const yDomain: [number, number] = ready
     ? [Math.min(yExtent[0], ticks[0] ?? yExtent[0]), Math.max(yExtent[1], ticks.at(-1) ?? yExtent[1])]
     : [0, 1]
 
-  const x = linear(ready ? [xExtent[0], xExtent[1]] : [0, 1], [plot.left, plot.left + plot.width])
+  const x = linear(ready ? xExtent : [0, 1], [plot.left, plot.left + plot.width])
   const y = linear(yDomain, [plot.top + plot.height, plot.top])
 
   return (
@@ -136,28 +182,35 @@ export function TimeSeriesChart({
 
           {overlay?.({ x, y, plot })}
 
-          {series.map((s) =>
-            // One path per unbroken run. This is the null handling.
-            segments(s.points).map((run, index) => (
-              <path
-                key={`${s.id}-${index}`}
-                d={run.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.t)},${y(p.v)}`).join(' ')}
-                fill="none"
-                stroke={s.colour}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray={dashArrays[s.dash ?? 'solid']}
-              />
-            )),
-          )}
+          <clipPath id={clipId}>
+            <rect x={plot.left} y={plot.top} width={plot.width} height={plot.height} />
+          </clipPath>
+
+          {/* Clipped, because a forced domain can be narrower than the data. */}
+          <g clipPath={`url(#${clipId})`}>
+            {series.map((s) =>
+              // One path per unbroken run. This is the null handling.
+              segments(s.points).map((run, index) => (
+                <path
+                  key={`${s.id}-${index}`}
+                  d={linePath(run, x, y, s.shape)}
+                  fill="none"
+                  stroke={s.colour}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray={dashArrays[s.dash ?? 'solid']}
+                />
+              )),
+            )}
+          </g>
         </svg>
       )}
 
       {xLabels && xLabels.length > 0 && (
         <div
           className="flex justify-between text-[10px] text-ink/45 tabular-nums"
-          style={{ marginLeft: PAD.left, marginRight: PAD.right, marginTop: -PAD.bottom + 4 }}
+          style={{ marginLeft: yAxisWidth, marginRight: PAD.right, marginTop: -PAD.bottom + 4 }}
         >
           {xLabels.map((label, index) => (
             <span key={index}>{label}</span>

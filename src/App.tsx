@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
+import { ChartCard } from '@/components/charts/ChartCard'
 import { MultiSeriesChart } from '@/components/charts/MultiSeriesChart'
+import { StackedChannelChart } from '@/components/charts/StackedChannelChart'
 import { TimeSeriesChart } from '@/components/charts/TimeSeriesChart'
 import { AnalyserCard } from '@/components/data/AnalyserCard'
 import { BulkActionBar } from '@/components/data/BulkActionBar'
@@ -44,7 +46,7 @@ import {
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
 import { analyser, arrayChambers, standaloneChambers } from '@/mocks/devices'
-import { analyserCycle, environment24h, fluxPerClosure } from '@/mocks/series'
+import { analyserCycle, closureTrace, environment24h, fluxPerClosure } from '@/mocks/series'
 import { assignSeriesStyles } from '@/lib/seriesPalette'
 import type { ArrayChamber, StandaloneChamber } from '@/types/device'
 
@@ -67,6 +69,9 @@ export default function App() {
   const [crumb, setCrumb] = useState<string | null>(null)
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set(['ch-s21']))
   const [page, setPage] = useState(1)
+  const [stacked, setStacked] = useState<ReadonlySet<string>>(
+    new Set(['Chamber_Temp_C', 'Chamber_RH_%', 'Chamber_Pressure_Pa']),
+  )
   const [channels2, setChannels2] = useState<ReadonlySet<string>>(
     new Set(['Chamber_Temp_C', 'Chamber_RH_%', 'Chamber_Pressure_Pa']),
   )
@@ -631,6 +636,125 @@ export default function App() {
                   }
                 />
               </div>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="StackedChannelChart"
+          note="The client's own chart idiom: a channel above its context, read straight down one shared clock."
+        >
+          <Row label="the Channels card, as the chamber page draws it">
+            <div className="w-full max-w-3xl">
+              <Card flush>
+                <div className="px-4 pt-3 pb-2">
+                  <ChannelChipRow
+                    channels={STACK_CHIPS}
+                    selected={stacked}
+                    onEdit={() => {}}
+                    onToggle={(id) =>
+                      setStacked((c) => {
+                        const next = new Set(c)
+                        if (next.has(id)) next.delete(id)
+                        else next.add(id)
+                        return next
+                      })
+                    }
+                  />
+                </div>
+                <StackedChannelChart
+                  channels={STACK_CHANNELS.filter((c) => stacked.has(c.id))}
+                  xDomain={ENV_WINDOW}
+                  xLabels={['15:00 yest.', '03:00', '09:00', '15:02 today']}
+                />
+              </Card>
+              <p className="mt-1 text-xs text-gray-400">
+                Toggle channels and the panels keep their x positions, because the domain is passed
+                in rather than fitted per panel. SoilM_Raw is fitted but silent, which is a panel
+                saying so rather than a channel that vanishes.
+              </p>
+            </div>
+          </Row>
+          <Row label="the client's Fig. 1: CO₂ over MPVPosition">
+            <div className="w-full max-w-3xl">
+              <Card flush>
+                <StackedChannelChart
+                  channels={FIG1_CHANNELS}
+                  xLabels={['01:00', '01:35', '02:10']}
+                  panelHeight={78}
+                />
+              </Card>
+              <p className="mt-1 text-xs text-gray-400">
+                MPVPosition is a step, not a line: the manifold holds a chamber and then jumps.
+                Interpolating would draw the valve sitting at 4.5, which never happens.
+              </p>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="ChartCard"
+          note="The frame: title, unit, what qualifies the window, and figures derived from the same points."
+        >
+          <Row label="flux per closure">
+            <div className="w-full max-w-3xl">
+              <ChartCard
+                title={<>CO₂ flux · one value per closure</>}
+                unit={<>µmol m⁻² s⁻¹</>}
+                meta={['30 min mean', 'last 24 h']}
+                stats={FLUX_STATS}
+              >
+                <TimeSeriesChart
+                  height={110}
+                  series={[{ id: 'flux', points: FLUX, colour: 'var(--color-ink)' }]}
+                  xLabels={['15:00 yest.', '15:02 today']}
+                  formatY={(v) => v.toFixed(1)}
+                />
+              </ChartCard>
+              <p className="mt-1 text-xs text-gray-400">
+                mean, min and max are computed from the same array the chart is drawn from, so they
+                cannot drift apart. Two closures failed their fit and break the line.
+              </p>
+            </div>
+          </Row>
+          <Row label="flush, wrapping a stack">
+            <div className="w-full max-w-3xl">
+              <ChartCard
+                title="Channels"
+                meta={['shared time axis', 'last 24 h']}
+                action={<TextLink size="sm">Edit channels</TextLink>}
+                flush
+              >
+                <StackedChannelChart
+                  channels={STACK_CHANNELS.slice(0, 2)}
+                  xDomain={ENV_WINDOW}
+                  xLabels={['15:00 yest.', '15:02 today']}
+                />
+              </ChartCard>
+            </div>
+          </Row>
+          <Row label="a fit summary, and a footer">
+            <div className="w-full max-w-3xl">
+              <ChartCard
+                title={<>Current closure · CO2_ppm</>}
+                meta={['since Lid Func = closed']}
+                stats={CLOSURE_STATS}
+                footer={
+                  <p className="text-xs text-ink/55">
+                    Fitted from {CLOSURE.deadBandSeconds} s onward; before that the chamber is still
+                    settling. The wireframe also prints a flux here, which we cannot compute yet:
+                    the equation needs the chamber volume and base area, and the client has not
+                    sent them.
+                  </p>
+                }
+              >
+                <TimeSeriesChart
+                  height={110}
+                  series={[{ id: 'closure', points: CLOSURE.points, colour: 'var(--color-ink)' }]}
+                  xLabels={['0 s', '90 s', '180 s']}
+                  formatY={(v) => v.toFixed(0)}
+                />
+              </ChartCard>
             </div>
           </Row>
         </Section>
@@ -1276,6 +1400,7 @@ export default function App() {
 }
 
 const CYCLE = analyserCycle()
+const CLOSURE = closureTrace()
 const ENV = environment24h()
 const FLUX = fluxPerClosure()
 
@@ -1323,6 +1448,62 @@ const NESTED_COLUMNS: Column<ArrayChamber>[] = [
 ]
 
 /** Every channel a chamber file can carry. Three are not fitted on this rig. */
+/** The window every environment panel is drawn against, from the mock itself. */
+const ENV_WINDOW: [number, number] = [ENV.temp[0].t, ENV.temp[ENV.temp.length - 1].t]
+
+const STACK_CHANNELS = [
+  { id: 'Chamber_Temp_C', unit: '°C', points: ENV.temp },
+  { id: 'Chamber_RH_%', unit: '%', points: ENV.humidity },
+  { id: 'Chamber_Pressure_Pa', unit: 'Pa', points: ENV.pressure },
+  // Fitted, wired, and reporting nothing. The panel has to say so.
+  { id: 'SoilM_Raw', unit: 'raw', points: ENV.soilTC },
+]
+
+const STACK_CHIPS = [
+  ...STACK_CHANNELS.map((c) => ({ id: c.id })),
+  { id: 'SoilT_C', notFitted: true },
+  { id: 'Soil_EC', notFitted: true },
+  { id: 'Light_Down', notFitted: true },
+]
+
+/** The client's Fig. 1, the pair he built the whole document around. */
+const FIG1_CHANNELS = [
+  { id: 'CO2', label: <>CO₂</>, unit: 'ppm', points: CYCLE.co2 },
+  {
+    id: 'MPVPosition',
+    unit: 'chamber',
+    points: CYCLE.mpv,
+    shape: 'step' as const,
+    domain: [0, 8] as [number, number],
+    format: (v: number) => v.toFixed(0),
+  },
+]
+
+/**
+ * The fit figures belong to the trace. The third has no label, which is the
+ * shape the wireframe uses for its flux fragment.
+ */
+const CLOSURE_STATS = (() => {
+  const from = CLOSURE.points[0].t + CLOSURE.deadBandSeconds * 1000
+  const fitted = CLOSURE.points.filter((p) => p.t >= from && p.v !== null).length
+  return [
+    { label: 'slope', value: <>{CLOSURE.slope} ppm s⁻¹</> },
+    { label: <>R²</>, value: CLOSURE.r2 },
+    { value: <>{fitted} points fitted</> },
+  ]
+})()
+
+/** Derived from FLUX, not typed out, so the figures cannot contradict the line. */
+const FLUX_STATS = (() => {
+  const values = FLUX.map((p) => p.v).filter((v): v is number => v !== null)
+  const mean = values.reduce((sum, v) => sum + v, 0) / values.length
+  return [
+    { label: 'mean', value: mean.toFixed(2) },
+    { label: 'min', value: Math.min(...values).toFixed(2) },
+    { label: 'max', value: Math.max(...values).toFixed(2) },
+  ]
+})()
+
 const CHANNELS = [
   { id: 'Chamber_Temp_C' },
   { id: 'Chamber_RH_%' },
@@ -1500,6 +1681,8 @@ const SECTION_INDEX = [
   'StatStrip',
   'TimeSeriesChart',
   'MultiSeriesChart',
+  'StackedChannelChart',
+  'ChartCard',
   'DeviceCard · AnalyserCard',
   'ShowMoreRow',
   'ChannelChipRow',
