@@ -59,9 +59,13 @@ Three components no longer appear in the design. **They are deliberately still h
 | `Chip` | Nothing in the new file uses a toggle pill. `Badge`, the static tag, is used more than ever. |
 
 They build, they pass CI, and the machinery they forced into `src/lib/` is what the new design runs
-on: `niceDomain` reproduces the new wireframe's axis bounds exactly, `format.ts` reproduces its
-summary lines exactly, and `TimeSeriesChart`'s `xDomain`, `ticks` and `overlay` props only exist
-because the stacked chart needed them. `overlay` is what the analyser's shaded valve bands will use.
+on: `format.ts` reproduces the new wireframe's summary lines exactly, `niceDomain` reproduces two of
+its six axis bounds exactly and is within one step on the rest, and `TimeSeriesChart`'s `xDomain`,
+`ticks` and `overlay` props only exist because the stacked chart needed them. `overlay` is what the
+analyser's shaded valve bands will use.
+
+The wireframe's own axis padding rule cannot be derived from its six charts, and its bounds are not
+consistently round. Agree it with whoever owns the Figma before changing `niceDomain` to chase it.
 
 The wireframe has had two major revisions in three days. Deleting on that cadence is how you end up
 rebuilding the same component twice.
