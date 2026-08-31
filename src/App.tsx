@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
+import { MultiSeriesChart } from '@/components/charts/MultiSeriesChart'
 import { TimeSeriesChart } from '@/components/charts/TimeSeriesChart'
 import { AnalyserCard } from '@/components/data/AnalyserCard'
 import { BulkActionBar } from '@/components/data/BulkActionBar'
@@ -44,6 +45,7 @@ import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
 import { analyser, arrayChambers, standaloneChambers } from '@/mocks/devices'
 import { analyserCycle, environment24h, fluxPerClosure } from '@/mocks/series'
+import { assignSeriesStyles } from '@/lib/seriesPalette'
 import type { ArrayChamber, StandaloneChamber } from '@/types/device'
 
 /**
@@ -580,6 +582,55 @@ export default function App() {
               <p className="mt-1 text-xs text-gray-400">
                 Nothing to draw renders nothing, rather than an axis around an empty box.
               </p>
+            </div>
+          </Row>
+        </Section>
+
+        <Section
+          title="MultiSeriesChart"
+          note="Chambers compared on one axis. Styles come from the fleet, so the legend beside it cannot disagree."
+        >
+          <Row label="six chambers">
+            <div className="w-full max-w-2xl">
+              <MultiSeriesChart
+                height={150}
+                series={FLEET_SERIES}
+                fleetOrder={FLEET_IDS}
+                xLabels={['15:00 yest.', '03:00', '15:02 today']}
+                formatY={(v) => v.toFixed(1)}
+              />
+            </div>
+          </Row>
+          <Row label="with the legend">
+            <div className="flex w-full max-w-3xl flex-wrap gap-4">
+              <div className="min-w-0 flex-1">
+                <MultiSeriesChart
+                  height={150}
+                  series={FLEET_SERIES}
+                  fleetOrder={FLEET_IDS}
+                  visible={legendOn}
+                  xLabels={['15:00 yest.', '03:00', '15:02 today']}
+                  formatY={(v) => v.toFixed(1)}
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  Tick a chamber off and the others keep their colours, because styles are assigned
+                  from the whole fleet rather than from whatever is currently shown.
+                </p>
+              </div>
+              <div className="w-56 shrink-0 rounded-panel border border-line-strong bg-surface">
+                <LegendPanel
+                  groups={LEGEND_GROUPS}
+                  selected={legendOn}
+                  onToggle={(id) =>
+                    setLegendOn((c) => {
+                      const next = new Set(c)
+                      if (next.has(id)) next.delete(id)
+                      else next.add(id)
+                      return next
+                    })
+                  }
+                />
+              </div>
             </div>
           </Row>
         </Section>
@@ -1285,34 +1336,50 @@ const CHANNELS = [
   { id: 'Light_Down', notFitted: true },
 ]
 
-const SERIES_COLOURS = [
-  'var(--color-series-1)', 'var(--color-series-2)', 'var(--color-series-3)',
-  'var(--color-series-4)', 'var(--color-series-5)', 'var(--color-series-6)',
-]
+/**
+ * One fleet order, one style assignment. The chart and the legend both read from
+ * FLEET_STYLES, which is the whole point of assignSeriesStyles: a chamber's
+ * colour belongs to the chamber, not to whichever component draws it.
+ */
+const FLEET = [...arrayChambers, ...standaloneChambers]
+const FLEET_IDS = FLEET.map((d) => d.id)
+const FLEET_STYLES = assignSeriesStyles(FLEET_IDS)
 
 const LEGEND_GROUPS = [
   {
     label: 'Array · analyser',
-    series: arrayChambers.slice(0, 4).map((c, i) => ({
+    series: arrayChambers.slice(0, 4).map((c) => ({
       id: c.id,
       label: c.name,
-      colour: SERIES_COLOURS[i],
-      dash: (['solid', 'dashed', 'dotted', 'solid'] as const)[i],
+      colour: FLEET_STYLES.get(c.id)!.colour,
+      dash: FLEET_STYLES.get(c.id)!.dash,
       value: c.latestFlux?.value ?? null,
     })),
     hiddenCount: arrayChambers.length - 4,
   },
   {
     label: 'Standalone',
-    series: standaloneChambers.slice(0, 2).map((c, i) => ({
+    series: standaloneChambers.slice(0, 2).map((c) => ({
       id: c.id,
       label: c.name,
-      colour: SERIES_COLOURS[i + 3],
+      colour: FLEET_STYLES.get(c.id)!.colour,
+      dash: FLEET_STYLES.get(c.id)!.dash,
       value: c.latestFlux?.value ?? null,
     })),
     hiddenCount: standaloneChambers.length - 2,
   },
 ]
+
+/**
+ * A flux trace for exactly the chambers the legend lists, so the two demos are
+ * showing the same six devices rather than overlapping by accident.
+ */
+const CHARTED = [...arrayChambers.slice(0, 4), ...standaloneChambers.slice(0, 2)]
+const FLEET_SERIES = CHARTED.map((device, i) => ({
+  id: device.id,
+  label: device.name,
+  points: fluxPerClosure(i + 2),
+}))
 
 const PLACED = [
   { id: analyser.id, name: analyser.name, status: analyser.status,
@@ -1432,6 +1499,7 @@ const SECTION_INDEX = [
   'Chip',
   'StatStrip',
   'TimeSeriesChart',
+  'MultiSeriesChart',
   'DeviceCard · AnalyserCard',
   'ShowMoreRow',
   'ChannelChipRow',
