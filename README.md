@@ -48,6 +48,24 @@ focus rings, ARIA. Specifically worth knowing, because these look passive but ar
   points it is handed, and re-measures on resize, so it will draw real readings unchanged once
   something fetches them. It also breaks the line at a null rather than bridging it.
 
+### Orphaned by the 31 Aug wireframe revision
+
+Three components no longer appear in the design. **They are deliberately still here.**
+
+| Component | Why it is orphaned |
+|---|---|
+| `StackedChannelChart` | The chamber pages dropped the stacked "Channels" card. Every channel is now its own full-size `ChartCard`. |
+| `ChannelChipRow` | It headed that card. Channel choice moved into the dashboard editor as a checkbox list. |
+| `Chip` | Nothing in the new file uses a toggle pill. `Badge`, the static tag, is used more than ever. |
+
+They build, they pass CI, and the machinery they forced into `src/lib/` is what the new design runs
+on: `niceDomain` reproduces the new wireframe's axis bounds exactly, `format.ts` reproduces its
+summary lines exactly, and `TimeSeriesChart`'s `xDomain`, `ticks` and `overlay` props only exist
+because the stacked chart needed them. `overlay` is what the analyser's shaded valve bands will use.
+
+The wireframe has had two major revisions in three days. Deleting on that cadence is how you end up
+rebuilding the same component twice.
+
 ### Not wired, on purpose
 
 | Thing | Why | Unblocked by |
