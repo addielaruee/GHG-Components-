@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { AppShell } from '@/components/layout/AppShell'
+import { TimeSeriesChart } from '@/components/charts/TimeSeriesChart'
 import { AnalyserCard } from '@/components/data/AnalyserCard'
 import { BulkActionBar } from '@/components/data/BulkActionBar'
 import { ChannelChipRow } from '@/components/data/ChannelChipRow'
@@ -42,6 +43,7 @@ import {
 import { SegmentedControl } from '@/components/primitives/SegmentedControl'
 import { StatusDot } from '@/components/primitives/StatusDot'
 import { analyser, arrayChambers, standaloneChambers } from '@/mocks/devices'
+import { analyserCycle, environment24h, fluxPerClosure } from '@/mocks/series'
 import type { ArrayChamber, StandaloneChamber } from '@/types/device'
 
 /**
@@ -522,6 +524,64 @@ export default function App() {
               </div>
             </div>
           </div>
+        </Section>
+
+        <Section
+          title="TimeSeriesChart"
+          note="The base every other chart wraps. A gap in the data is a gap in the line, never a bridge."
+        >
+          <Row label="one series">
+            <div className="w-full max-w-2xl">
+              <TimeSeriesChart
+                ariaLabel="CO2 concentration across one measurement cycle"
+                series={[{ id: 'co2', points: CYCLE.co2, colour: 'var(--color-series-1)' }]}
+                xLabels={['01:00', '04:30', '08:00']}
+                formatY={(v) => v.toFixed(0)}
+              />
+            </div>
+          </Row>
+          <Row label="three series">
+            <div className="w-full max-w-2xl">
+              <TimeSeriesChart
+                ariaLabel="Chamber environment, three channels"
+                height={140}
+                series={[
+                  { id: 'temp', points: ENV.temp, colour: 'var(--color-series-1)' },
+                  { id: 'rh', points: ENV.humidity, colour: 'var(--color-series-3)', dash: 'dashed' },
+                  { id: 'soil', points: ENV.soilTC, colour: 'var(--color-series-2)', dash: 'dotted' },
+                ]}
+                xLabels={['15:00 yest.', '03:00', '15:02 today']}
+                formatY={(v) => v.toFixed(0)}
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Three channels on one axis. SoilT_C is null throughout, because this chamber has no
+                soil probe fitted, so it draws nothing at all rather than a flat line at zero.
+              </p>
+            </div>
+          </Row>
+          <Row label="with gaps">
+            <div className="w-full max-w-2xl">
+              <TimeSeriesChart
+                ariaLabel="CO2 flux per closure over 24 hours, with two failed fits"
+                series={[{ id: 'flux', points: FLUX, colour: 'var(--color-series-5)' }]}
+                xLabels={['15:00 yest.', '03:00', '15:02 today']}
+                formatY={(v) => v.toFixed(1)}
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Two closures had a fit too poor to trust. The line breaks at each rather than
+                joining across, because a segment drawn over a missing reading is an invented
+                measurement.
+              </p>
+            </div>
+          </Row>
+          <Row label="empty">
+            <div className="w-full max-w-2xl">
+              <TimeSeriesChart series={[{ id: 'none', points: [], colour: 'var(--color-series-1)' }]} />
+              <p className="mt-1 text-xs text-gray-400">
+                Nothing to draw renders nothing, rather than an axis around an empty box.
+              </p>
+            </div>
+          </Row>
         </Section>
 
         <Section
@@ -1164,6 +1224,10 @@ export default function App() {
   )
 }
 
+const CYCLE = analyserCycle()
+const ENV = environment24h()
+const FLUX = fluxPerClosure()
+
 /** The analyser's gas strip: the four gases, and only the analyser has them. */
 const analyserGasStats = [
   { label: <>CO₂</>, value: <>{analyser.latest?.co2} ppm</> },
@@ -1367,6 +1431,7 @@ const SECTION_INDEX = [
   'IconButton · TextLink · TrendArrow · EmptyValue',
   'Chip',
   'StatStrip',
+  'TimeSeriesChart',
   'DeviceCard · AnalyserCard',
   'ShowMoreRow',
   'ChannelChipRow',
@@ -1457,7 +1522,11 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <span className="w-32 shrink-0 pt-1.5 text-[11px] tracking-wide text-gray-400 uppercase">
         {label}
       </span>
-      <div className="flex min-w-0 flex-wrap items-center gap-3">{children}</div>
+      {/* flex-1 so a child asking for w-full has something to resolve against.
+          Without it this wrapper sizes to its content, and a chart that measures
+          its own container ends up in a loop: no width, so nothing drawn, so no
+          content, so no width. */}
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">{children}</div>
     </div>
   )
 }
