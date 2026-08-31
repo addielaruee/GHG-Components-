@@ -44,15 +44,18 @@ focus rings, ARIA. Specifically worth knowing, because these look passive but ar
 - **Checkbox** drives a real indeterminate select-all.
 - **Select** opens a real listbox with full keyboard support.
 - **AppShell** scrolls only its content column; sidebar and header hold position.
+- **Charts are not pictures.** `TimeSeriesChart` derives its scales, ticks and paths from whatever
+  points it is handed, and re-measures on resize, so it will draw real readings unchanged once
+  something fetches them. It also breaks the line at a null rather than bridging it.
 
 ### Not wired, on purpose
 
 | Thing | Why | Unblocked by |
 |---|---|---|
-| The Cards / Table / Map toggle changes nothing | Those three screens are separate components | Tier 3 (`DataTable`, `DeviceCard`, `AnalyserCard`) and Tier 6 (`MapCanvas`) |
+| The Cards / Table / Map toggle changes nothing | Those three screens are separate components, and nothing assembles them into screens yet | Someone owning screen assembly. `DataTable`, `DeviceCard` and `AnalyserCard` all exist; `MapCanvas` is Tier 6 and still on hold |
 | No navigation between sections | There is no router, and routing was never specified in the W3 proposal | A team decision, see below |
 | No real data anywhere | Mocks exist in `src/mocks/`, but nothing fetches | The backend API contract |
-| `DemoSidebar` in `App.tsx` | A gallery stand-in so AppShell can be seen. It is **not** the real component | `SidebarNav`, next in the inventory |
+| Charts show mock series | `src/mocks/series.ts` generates them from a fixed seed, so the gallery is stable to look at | The backend API contract |
 
 ### TODO before this becomes an app
 
@@ -66,7 +69,7 @@ focus rings, ARIA. Specifically worth knowing, because these look passive but ar
       is unreachable with no reading at all, and one has never produced a flux.
 - [ ] **Decide who assembles screens** from these components. The Week 8 client deployment needs a
       running application, not a component set, and that step currently has no owner.
-- [ ] Replace `DemoSidebar` with the real `SidebarNav` once it lands.
+- [x] ~~Replace `DemoSidebar` with the real `SidebarNav`~~ Done.
 
 ## Layout
 
